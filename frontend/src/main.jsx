@@ -4,8 +4,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom"
 
 import "@/styles/globals.css"
 
-import { Login } from "@/pages/Login"
-import { Cadastro } from "@/pages/cadastro"
+import { Login } from "@/pages/Login/Login"
+import { Cadastro } from "@/pages/cadastro/Cadastro"
 
 const router = createBrowserRouter([
   {

@@ -1,0 +1,96 @@
+.container{
+    display: flex;
+    flex-direction: row;
+    gap: 8em;
+    width: 100%;
+}
+
+.banner{
+    height: 100vh;
+    width: 58%;
+}
+
+.login-content{
+    margin-top: 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 7rem;
+    width: 25%;
+}
+
+.logo{
+    width: 99px;
+}
+
+.titles-content{
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.titles-content h2{
+    font-weight: normal;
+    font-size: 35px;
+}
+
+.titles-content h1{
+    font-size: 70px;
+}
+
+.login-forms{
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+}
+
+.login-email{
+    display: flex;
+    flex-direction: column;
+}
+
+.lembrar-senha{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.lembrar-senha a {
+    color: rgba(90, 87, 87, 0.43)
+}
+
+.lembrar-senha a:hover{
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.login-senha{
+    display: flex;
+    flex-direction: column;
+}
+
+.input-login{
+    padding: 1rem;
+    background-color: rgba(217, 217, 217, 0.28);
+    border: none;
+    border-radius: 10px;
+}
+
+.input-login input::placeholder{
+    color: rgba(0, 0, 0, 0.12);
+}
+
+.login-button{
+    padding: 1rem;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(to right, #ffac47, #ff8c00);
+    color: #fff;
+}
+
+.login-obs{
+    text-align: center;
+}
+.login-cadastro{
+    text-decoration: underline;
+    cursor: pointer;
+}
