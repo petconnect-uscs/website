@@ -46,6 +46,7 @@
 .login-email{
     display: flex;
     flex-direction: column;
+    gap: 0.3rem;
 }
 
 .lembrar-senha{
@@ -66,13 +67,32 @@
 .login-senha{
     display: flex;
     flex-direction: column;
+    gap: 0.3rem
 }
 
 .input-login{
     padding: 1rem;
     background-color: rgba(217, 217, 217, 0.28);
-    border: none;
+    border: 1px solid #D9D9D947;
     border-radius: 10px;
+    outline: none;
+    transition: 0.3s ease;
+}
+
+.input-login:focus{
+    animation: animeteInput 2s ease-in-out infinite;
+}
+
+@keyframes animeteInput {
+    0%{
+        border-color: #D9D9D947;
+    }50%{
+        border-color: #ffac47;
+    }70%{
+        border-color: #ff8c00;
+    }100%{
+        border-color: #D9D9D947;
+    }
 }
 
 .input-login input::placeholder{
@@ -94,3 +114,4 @@
     text-decoration: underline;
     cursor: pointer;
 }
+

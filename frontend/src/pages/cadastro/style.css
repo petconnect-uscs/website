@@ -1,0 +1,78 @@
+.cadastro-content{
+    display: flex;
+    flex-direction: column;
+    gap: 2rem !important;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-left: 30px; /* espaço para o 'checkmark' */
+  font-family: sans-serif;
+  align-items: center;
+}
+
+/* Esconde o checkbox nativo */
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* Visual do "checkbox" personalizado */
+.checkmark {
+  position: absolute;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #eee;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  border: 1px solid #ccc;
+}
+
+/* Quando estiver marcado */
+.checkbox-container input:checked ~ .checkmark {
+  background-color: #ff8c00;
+}
+
+/* Ícone de check */
+.checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Exibe o ícone quando marcado */
+.checkbox-container input:checked ~ .checkmark::after {
+  display: block;
+}
+
+.obs-termos{
+    display: flex;
+    align-items: center;
+    padding:  0 2rem;
+    text-align: center;
+}
+.obs-termos p{
+    color: rgb(0, 0, 0, 0.43);
+}
+.obs-termos span{
+    text-decoration: underline;
+}
+
+.obs-termos span:hover{
+    cursor: pointer;
+}
