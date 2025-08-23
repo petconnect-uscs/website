@@ -33,7 +33,7 @@ export function Cadastro() {
           <div className="flex item-center gap-2">
             <Checkbox id="termos" />
             <Label for="termos">
-              Aceito os{" "}
+              Aceite os{" "}
               <span className="text-primary underline underline-offset-4 decoration-primary">
                 termos de uso
               </span>{" "}
