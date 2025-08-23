@@ -1,40 +1,38 @@
-import { createRoot } from "react-dom/client"
+import { createRoot } from "react-dom/client";
 
-import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import "@/styles/globals.css"
+import "@/styles/globals.css";
 
-import { Login } from "@/pages/login"
-import { Cadastro } from "@/pages/cadastro"
-import { Senha } from "@/pages/senha"
-import { Forget } from "./pages/senha/forget"
-import { Email } from "./pages/email"
+import { Login } from "@/pages/login";
+import { Cadastro } from "@/pages/cadastro";
+import { Senha } from "@/pages/senha";
+import { Forget } from "@/pages/senha/forget";
+import { Email } from "@/pages/email";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Login />
+    element: <Login />,
   },
   {
     path: "/cadastro",
-    element: <Cadastro />
+    element: <Cadastro />,
   },
   {
     path: "/senha",
-    element: <Senha />
+    element: <Senha />,
   },
   {
-    path: "/esqueceu",
-    element: <Forget />
+    path: "/esqueceu-senha",
+    element: <Forget />,
   },
   {
     path: "/email",
-    element: <Email />
-  }
-])
+    element: <Email />,
+  },
+]);
 
-const root = createRoot(document.getElementById("root"))
+const root = createRoot(document.getElementById("root"));
 
-root.render(
-  <RouterProvider router={router} />
-)
+root.render(<RouterProvider router={router} />);

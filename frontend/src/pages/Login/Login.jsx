@@ -1,42 +1,51 @@
-import banner from "@/img/banner.png"
-import logo from "@/img/logo.png"
-import '@/pages/Login/style.css'
+import { Link } from "react-router-dom";
+
+import banner from "@/img/banner.png";
+import logo from "@/img/logo.png";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function Login() {
-    return (
-      <main className="container">
-        <img className="banner" src={banner}/>
+  return (
+    <main className="flex">
+      <img src={banner} className="h-screen" />
 
-        <div className="login-content">
-          <img className="logo" src={logo}/>
+      <div className="flex flex-col justify-center gap-10 mt-20 max-w-xl !mx-auto w-full">
+        <div className="flex flex-col gap-4">
+          <img src={logo} className="w-24 !mb-6" />
+          <h1 className="text-6xl font-semibold">Bem vindo!</h1>
+          <p>Faça o login em sua conta</p>
+        </div>
 
-          <div className="titles-content">
-            <h1>Bem vindo!</h1>
-            <h2>Faça o login em sua conta</h2>
+        <form className="flex flex-col gap-8">
+          <div className="flex flex-col gap-3">
+            <Label for="email">Email</Label>
+            <Input type="email" id="email" placeholder="seuemail@gmail.com" />
+          </div>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <Label for="senha">Senha</Label>
+              <Link to="/esqueceu-senha" class="text-sm text-foreground/60">
+                Esqueceu a senha?
+              </Link>
+            </div>
+            <Input type="password" id="senha" placeholder="**********" />
           </div>
 
-          <form className="login-forms">
-            <div className="login-email">
-              <label id="email">Email</label>
-              <input className="input-login" type="email" id="email" placeholder="seuemail@gmail.com"/>
-            </div>
+          <Button size="xl">Fazer Login</Button>
 
-            <div className="login-senha">
-              <div className="lembrar-senha">
-                <label id="senha">Senha</label>
-                <a>Lembrar senha</a>
-              </div>
-              <input className="input-login" type="password" id="senha" placeholder="**********"/>
-            </div>
-
-            <button className="login-button">Fazer Login</button>
-            
-            <div className="login-obs">
-              <p>Não tem uma conta? <span className="login-cadastro">Cadastre-se agora</span></p>
-            </div>
-          </form>
-          
-        </div>
-      </main>
-    )
-  }
+          <div className="flex items-center justify-center">
+            <p>
+              Não tem uma conta?{" "}
+              <span className="underline underline-offset-4 decoration-neutral-400">
+                Cadastre-se agora
+              </span>
+            </p>
+          </div>
+        </form>
+      </div>
+    </main>
+  );
+}
