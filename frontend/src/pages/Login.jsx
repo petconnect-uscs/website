@@ -27,7 +27,7 @@ export function Login() {
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <Label for="senha">Senha</Label>
-              <Link to="/esqueceu-senha" class="text-sm text-foreground/60">
+              <Link to="/forget" class="text-sm text-foreground/60">
                 Esqueceu a senha?
               </Link>
             </div>
