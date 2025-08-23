@@ -4,11 +4,11 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "@/styles/globals.css";
 
-import { Login } from "@/pages/login";
-import { Cadastro } from "@/pages/cadastro";
-import { Senha } from "@/pages/senha";
-import { Forget } from "@/pages/senha/forget";
-import { Email } from "@/pages/email";
+import { Login } from "@/pages/Login";
+import { Cadastro } from "@/pages/Cadastro";
+import { Senha } from "@/pages/Senha";
+import { Forget } from "@/pages/Forget";
+import { Email } from "@/pages/Email";
 
 const router = createBrowserRouter([
   {
