@@ -24,7 +24,7 @@ const router = createBrowserRouter([
     element: <Senha />,
   },
   {
-    path: "/esqueceu-senha",
+    path: "/forget",
     element: <Forget />,
   },
   {
