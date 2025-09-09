@@ -20,7 +20,7 @@ export function Cadastro() {
           <p>Crie uma nova conta</p>
         </div>
 
-        <form className="flex flex-col gap-4">
+        <form className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <Label for="email">Nome</Label>
             <Input type="nome" id="nome" placeholder="Seu nome" />
@@ -31,10 +31,9 @@ export function Cadastro() {
           </div>
           <div className="flex flex-col gap-2">
             <Label for="senha">Senha</Label>
-
             <Input type="password" id="senha" placeholder="**********" />
           </div>
-          <div className="flex item-center gap-2">
+          <div className="flex item-center gap-2 !py-1">
             <Checkbox id="termos" />
             <Label for="termos">
               Aceite os{" "}
@@ -48,15 +47,18 @@ export function Cadastro() {
           <div className="flex items-center justify-center">
             <p>
               Já tem uma conta?{" "}
-              <span className="underline underline-offset-4 decoration-neutral-400">
+              <Link
+                to="/"
+                className="underline underline-offset-4 decoration-neutral-400"
+              >
                 Fazer login
-              </span>
+              </Link>
             </p>
           </div>
           <div className=" text-neutral-400 flex items-center justify-center text-center ">
             <p>
-              Continuando, você aceitara nossos {""}
-              <span className="text-neutral-400 underline underline-offset-4 decoration-neutral-400">
+              Continuando, você concorda com os nossos {""}
+              <span className="block text-neutral-400 underline underline-offset-4 decoration-neutral-400">
                 Termos de serviço e Política de privacidade.
               </span>
             </p>
