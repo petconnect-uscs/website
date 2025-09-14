@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 import banner from "@/img/banner.png";
-import logo from "@/img/logo.png";
+import logo from "@/img/Logo.png";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

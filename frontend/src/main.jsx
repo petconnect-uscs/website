@@ -9,6 +9,7 @@ import { Cadastro } from "@/pages/Cadastro";
 import { Senha } from "@/pages/Senha";
 import { Forget } from "@/pages/Forget";
 import { Email } from "@/pages/Email";
+import { Dashboard } from "./pages/tutorPages/dashboard";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
     path: "/email",
     element: <Email />,
   },
+  {
+    path: "/dashboard",
+    element: <Dashboard />
+  }
 ]);
 
 const root = createRoot(document.getElementById("root"));
