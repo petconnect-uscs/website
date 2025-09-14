@@ -1,4 +1,4 @@
-import logo from "@/img/Logo.png";
+import logo from "@/img/logo.png";
 import SinoNotificacaoIcon from "@/img/sinoNotificacaoIcon.png";
 import HomeIcon from "@/img/homeicon.png";
 import CalendarIcon from "@/img/calendarIcon.png";
