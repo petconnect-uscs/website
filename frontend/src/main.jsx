@@ -10,6 +10,7 @@ import { Senha } from "@/pages/Senha";
 import { Forget } from "@/pages/Forget";
 import { Email } from "@/pages/Email";
 import { Dashboard } from "./pages/tutorPages/dashboard";
+import { SideBar } from "./components/sideBar";
 
 const router = createBrowserRouter([
   {
@@ -33,8 +34,13 @@ const router = createBrowserRouter([
     element: <Email />,
   },
   {
-    path: "/dashboard",
-    element: <Dashboard />
+    element: <SideBar />,
+    children: [
+      {
+        path: "/dashboard",
+        element: <Dashboard />,
+      }
+    ]
   }
 ]);
 

@@ -1,6 +1,8 @@
 import { SideBar } from "@/components/sideBar";
 export function Dashboard(){
     return(
-        <SideBar/>
+        <div className="ml-96 text-black">
+            <h1>crime</h1>
+        </div>
     )
 }
