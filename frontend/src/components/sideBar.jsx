@@ -1,6 +1,6 @@
 import logo from "@/img/logo.png";
 import SinoNotificacaoIcon from "@/img/sinoNotificacaoIcon.png";
-import HomeIcon from "@/img/homeicon.png";
+import HomeIcon from "@/img/homeIcon.png";
 import CalendarIcon from "@/img/calendarIcon.png";
 import PataIcon from "@/img/pataIcon.png";
 import More from "@/img/more-horizontal.png";
