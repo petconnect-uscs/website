@@ -9,6 +9,8 @@ import { Cadastro } from "@/pages/Cadastro";
 import { Senha } from "@/pages/Senha";
 import { Forget } from "@/pages/Forget";
 import { Email } from "@/pages/Email";
+import { Pet } from "./pages/Pet";
+import { PetProvider } from "./context/PetProvider";
 
 const router = createBrowserRouter([
   {
@@ -31,8 +33,16 @@ const router = createBrowserRouter([
     path: "/email",
     element: <Email />,
   },
+  {
+    path: "/pet",
+    element: <Pet />,
+  },
 ]);
 
 const root = createRoot(document.getElementById("root"));
 
-root.render(<RouterProvider router={router} />);
+root.render(
+  <PetProvider>
+    <RouterProvider router={router} />
+  </PetProvider>
+);
