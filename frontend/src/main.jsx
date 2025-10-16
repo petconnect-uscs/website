@@ -11,6 +11,7 @@ import { Forget } from "@/pages/Forget";
 import { Email } from "@/pages/Email";
 import { Dashboard } from "./pages/tutorPages/dashboard";
 import { SideBar } from "./components/sideBar";
+import { ValidacaoEmail } from "./pages/validacaoEmail";
 
 const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
     element: <Forget />,
   },
   {
+    path: "/validaçãoemail",
+    element: <ValidacaoEmail />,
+  },
+  {
     path: "/email",
     element: <Email />,
   },
@@ -39,9 +44,9 @@ const router = createBrowserRouter([
       {
         path: "/dashboard",
         element: <Dashboard />,
-      }
-    ]
-  }
+      },
+    ],
+  },
 ]);
 
 const root = createRoot(document.getElementById("root"));
