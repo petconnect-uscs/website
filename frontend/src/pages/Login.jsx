@@ -14,7 +14,7 @@ export function Login() {
 
       <div className="flex flex-col justify-center gap-10 mt-20 max-w-xl !mx-auto w-full">
         <div className="flex flex-col gap-4">
-          <img src={logo} className="w-24 !mb-6" />
+          <img src={logo} className="w-20 !mb-2" />
           <h1 className="text-6xl font-semibold">Bem vindo!</h1>
           <p>Faça o login em sua conta</p>
         </div>
@@ -39,9 +39,12 @@ export function Login() {
           <div className="flex items-center justify-center">
             <p>
               Não tem uma conta?{" "}
-              <span className="underline underline-offset-4 decoration-neutral-400">
+              <Link
+                to="/cadastro"
+                className="underline underline-offset-4 decoration-neutral-400"
+              >
                 Cadastre-se agora
-              </span>
+              </Link>
             </p>
           </div>
         </form>
