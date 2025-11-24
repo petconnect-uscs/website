@@ -9,6 +9,8 @@ import { Cadastro } from "@/pages/Cadastro";
 import { Senha } from "@/pages/Senha";
 import { Forget } from "@/pages/Forget";
 import { Email } from "@/pages/Email";
+import { Dashboard } from "./pages/tutorPages/dashboard";
+import { SideBar } from "./components/sideBar";
 import { Pet } from "./pages/Pet";
 import { PetProvider } from "./context/PetProvider";
 
@@ -34,6 +36,14 @@ const router = createBrowserRouter([
     element: <Email />,
   },
   {
+    element: <SideBar />,
+    children: [
+      {
+        path: "/dashboard",
+        element: <Dashboard />,
+      }
+    ]
+  }
     path: "/pet",
     element: <Pet />,
   },
