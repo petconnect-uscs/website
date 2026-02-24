@@ -130,7 +130,7 @@ export function CreateNewPetModal({ closeModal, isOpen }) {
 					<DialogTitle>Cadastrar Pet</DialogTitle>
 					<DialogDescription className="max-w-sm">
 						Insira os dados para cadastrar seu pet. Clique em salvar quando
-						terminar.
+						terminar. Teste. 24242
 					</DialogDescription>
 				</DialogHeader>
 				<form className="my-2 flex flex-col gap-4">
