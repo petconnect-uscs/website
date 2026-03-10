@@ -1,8 +1,8 @@
-require("dotenv").config();
-const app = require("./src/app");
-const { createProxy } = require("./src/middleware/proxy");
+import "dotenv/config";
+import app from "./src/app.js";
+import { createProxy } from "./src/middleware/proxy.js";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 const server = createProxy(app);
 

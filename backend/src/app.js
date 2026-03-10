@@ -1,9 +1,14 @@
-const express = require("express");
+import express from "express";
+import authRoutes from "./routes/auth-routes.js";
 
 const app = express();
 
-app.get("/", (req, res) => {
-  res.status(200).json({ msg: "api" });
+app.use(express.json());
+
+app.get("/", (res) => {
+  res.status(200).json({ msg: "Servidor rodando na porta 3002" });
 });
 
-module.exports = app;
+app.use("/auth", authRoutes);
+
+export default app;
