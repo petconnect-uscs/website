@@ -1,6 +1,6 @@
-const express = require("express");
-const cors = require("cors");
-const rateLimit = require("express-rate-limit");
+import express from "express";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
 
 /*CORS*/
 const corsOptions = {
@@ -34,7 +34,7 @@ function apiKeyMiddleware(req, res, next) {
 }
 
 /*Tratamento final de erros*/
-function errorHandler(err, req, res, next) {
+function errorHandler(err, res) {
   console.error(err);
   res.status(500).json({
     error: "Erro interno do servidor.",
@@ -59,4 +59,4 @@ function createProxy(app) {
   return proxy;
 }
 
-module.exports = { createProxy };
+export { createProxy };
