@@ -10,28 +10,23 @@ class AppError extends Error {
   }
 }
 
-function ensureJwtSecret() {
-  const secret = process.env.JWT_SECRET;
+// usa a variável diretamente
+const JWT_SECRET = process.env.JWT_SECRET;
 
-  if (!secret) {
+function createToken(payload) {
+  if (!JWT_SECRET) {
     throw new AppError("Configuração JWT_SECRET ausente no servidor.", 500);
   }
 
-  return secret;
-}
-
-function createToken(payload) {
-  const secret = ensureJwtSecret();
-
-  return jwt.sign(payload, secret, {
+  return jwt.sign(payload, JWT_SECRET, {
     expiresIn: "7d",
   });
 }
 
 async function registerClient(payload) {
-  const { name, email, cpf, password, phone } = payload;
+  const { cpf, name, email, birth_date, password } = payload;
 
-  if (!name || !email || !cpf || !password) {
+  if (!cpf || !email || !name || !password) {
     throw new AppError("Nome, email, CPF e senha são obrigatórios.", 400);
   }
 
@@ -48,11 +43,11 @@ async function registerClient(payload) {
   const passwordHash = await bcrypt.hash(password, 10);
 
   const client = await clientModel.createClient({
+    cpf,
     name,
     email,
-    cpf,
     passwordHash,
-    phone,
+    birth_date,
   });
 
   const token = createToken({
@@ -73,14 +68,11 @@ async function login(payload) {
   const client = await clientModel.findClientByEmail(email);
 
   if (client) {
-    const isValidPassword = await bcrypt.compare(
-      password,
-      client.password_hash
-    );
+    const isValidPassword = await bcrypt.compare(password, client.password);
 
     if (isValidPassword) {
       const token = createToken({
-        id: client.id,
+        cpf: client.cpf,
         role: "client",
       });
 
@@ -91,11 +83,11 @@ async function login(payload) {
   const admin = await adminModel.findAdminByEmail(email);
 
   if (admin) {
-    const isValidPassword = await bcrypt.compare(password, admin.password_hash);
+    const isValidPassword = await bcrypt.compare(password, admin.password);
 
     if (isValidPassword) {
       const token = createToken({
-        id: admin.id,
+        admin_id: admin.admin_id,
         role: "admin",
       });
 
@@ -107,37 +99,31 @@ async function login(payload) {
 }
 
 async function getAuthenticatedUser(userFromToken) {
-  const { id, role } = userFromToken;
-
-  if (!id || !role) {
-    throw new AppError("Token inválido.", 401);
-  }
+  const { cpf, admin_id, role } = userFromToken;
 
   if (role === "client") {
-    const client = await clientModel.findClientById(id);
+    if (!cpf) throw new AppError("Token inválido.", 401);
 
-    if (!client) {
-      throw new AppError("Cliente não encontrado.", 404);
-    }
+    const client = await clientModel.findClientByCpf(cpf);
+    if (!client) throw new AppError("Cliente não encontrado.", 404);
 
     return {
-      id: client.id,
-      name: client.name || client.nome,
+      cpf: client.cpf,
+      name: client.name,
       email: client.email,
       role: "client",
     };
   }
 
   if (role === "admin") {
-    const admin = await adminModel.findAdminById(id);
+    if (!admin_id) throw new AppError("Token inválido.", 401);
 
-    if (!admin) {
-      throw new AppError("Admin não encontrado.", 404);
-    }
+    const admin = await adminModel.findAdminById(admin_id);
+    if (!admin) throw new AppError("Admin não encontrado.", 404);
 
     return {
-      id: admin.id,
-      name: admin.name || admin.nome,
+      admin_id: admin.admin_id,
+      name: admin.name,
       email: admin.email,
       role: "admin",
     };

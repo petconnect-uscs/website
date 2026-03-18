@@ -27,14 +27,15 @@ function authMiddleware(req, res, next) {
     const payload = jwt.verify(token, secret);
 
     req.user = {
-      id: payload.id,
+      cpf: payload.cpf,
+      admin_id: payload.admin_id,
       role: payload.role,
     };
 
     return next();
   } catch (err) {
+    console.error("Erro ao validar token:", err.message);
     return res.status(401).json({ error: "Token inválido ou expirado." });
   }
 }
-
 export default authMiddleware;
