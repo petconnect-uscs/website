@@ -32,4 +32,27 @@ async function findClientById(id) {
   return result[0] || null;
 }
 
-export { findClientByEmail, findClientByCpf, createClient, findClientById };
+async function findAllClients() {
+  return await sql`
+    SELECT
+      cpf,
+      name,
+      birth_date,
+      email
+    FROM client
+    ORDER BY name
+`;
+}
+
+async function deleteClientByCpf(cpf) {
+  const result = await sql`
+  UPDATE client
+  SET deleted_at = NOW()
+  WHERE cpf = ${cpf}
+  RETURNING cpf
+`;
+
+  return result[0] || null;
+}
+
+export { findClientByEmail, findClientByCpf, createClient, findClientById, findAllClients, deleteClientByCpf };

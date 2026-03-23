@@ -10,7 +10,6 @@ class AppError extends Error {
   }
 }
 
-// usa a variável diretamente
 const JWT_SECRET = process.env.JWT_SECRET;
 
 function createToken(payload) {
@@ -51,7 +50,7 @@ async function registerClient(payload) {
   });
 
   const token = createToken({
-    id: client.id,
+    cpf: client.cpf,
     role: "client",
   });
 
