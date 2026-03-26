@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response, RequestHandler } from "express";
-import * as auth from "../services/auth-service";
+import * as auth from "@/services/auth-service.ts";
 
 function asyncHandler(
   serviceFn: (req: Request) => Promise<unknown>,

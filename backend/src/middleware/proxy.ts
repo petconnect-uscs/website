@@ -41,8 +41,9 @@ function errorHandler(
   _next: NextFunction
 ) {
   console.error(err);
+  
   res.status(500).json({
-    error: "Erro interno do servidor.",
+    error: err,
   });
 }
 

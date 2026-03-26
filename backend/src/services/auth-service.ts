@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import * as clientModel from "../models/client-model.ts";
-import * as adminModel from "../models/admin-model.ts";
+import * as clientModel from "@/models/client-model.ts";
+import * as adminModel from "@/models/admin-model.ts";
 
 export class AppError extends Error {
   statusCode: number;

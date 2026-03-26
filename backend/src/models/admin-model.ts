@@ -1,4 +1,4 @@
-import sql from "../config/db.ts";
+import sql from "@/config/db.ts";
 
 export type Admin = {
   admin_id: number;
