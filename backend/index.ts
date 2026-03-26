@@ -1,11 +1,12 @@
 import "dotenv/config";
-import app from "./src/app.js";
-import { createProxy } from "./src/middleware/proxy.js";
+import app from "./src/app.ts";
+import { createProxy } from "./src/middleware/proxy.ts";
 
-const PORT = process.env.PORT;
+const PORT = Number(process.env.PORT ?? 3002);
 
 const server = createProxy(app);
 
 server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
+

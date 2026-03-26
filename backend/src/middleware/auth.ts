@@ -1,6 +1,7 @@
-import jwt from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
+import type { NextFunction, Request, Response } from "express";
 
-function authMiddleware(req, res, next) {
+function authMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.header("Authorization");
 
   if (!authHeader) {
@@ -24,18 +25,25 @@ function authMiddleware(req, res, next) {
         .json({ error: "Configuração de JWT_SECRET ausente no servidor." });
     }
 
-    const payload = jwt.verify(token, secret);
+    const payload = jwt.verify(token, secret) as JwtPayload & {
+      cpf?: string;
+      admin_id?: number;
+      role?: "client" | "admin";
+    };
 
-    req.user = {
-      cpf: payload.cpf,
-      admin_id: payload.admin_id,
-      role: payload.role,
+    (req as any).user = {
+      cpf: payload.cpf as string | undefined,
+      admin_id: payload.admin_id as number | undefined,
+      role: payload.role as "client" | "admin" | undefined,
     };
 
     return next();
   } catch (err) {
-    console.error("Erro ao validar token:", err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Erro ao validar token:", message);
     return res.status(401).json({ error: "Token inválido ou expirado." });
   }
 }
+
 export default authMiddleware;
+
