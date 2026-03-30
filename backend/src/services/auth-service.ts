@@ -15,13 +15,12 @@ export class AppError extends Error {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 type TokenPayload =
-  | { id: number; role: "client" }
   | { cpf: string; role: "client" }
-  | { admin_id: number; role: "admin" };
+  | { admin_id: string; role: "admin" };
 
 type AuthenticatedUser =
   | { cpf: string; name: string; email: string; role: "client" }
-  | { admin_id: number; name: string; email: string; role: "admin" };
+  | { admin_id: string; name: string; email: string; role: "admin" };
 
 function createToken(payload: TokenPayload) {
   if (!JWT_SECRET) {
@@ -67,7 +66,7 @@ async function registerClient(payload: {
   });
 
   const token = createToken({
-    id: client.id,
+    cpf: client.cpf,
     role: "client",
   });
 
@@ -119,7 +118,7 @@ async function login(payload: {
 
 async function getAuthenticatedUser(userFromToken: {
   cpf?: string;
-  admin_id?: number;
+  admin_id?: string;
   role?: "client" | "admin";
 }): Promise<AuthenticatedUser> {
   const { cpf, admin_id, role } = userFromToken;

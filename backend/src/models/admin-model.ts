@@ -1,21 +1,38 @@
-import sql from "@/config/db.ts";
+import prisma from "@/prisma-client.ts";
 
 export type Admin = {
-  admin_id: number;
+  admin_id: string;
   name: string;
   email: string;
   password?: string;
 };
 
-async function findAdminByEmail(email: string): Promise<Admin | null> {
-  const result = await sql`select * from admin where email = ${email} limit 1`;
-  return (result as unknown as Admin[])[0] || null;
+function toAdmin(row: {
+  admin_id: string;
+  name: string;
+  email: string;
+  password: string;
+}): Admin {
+  return {
+    admin_id: row.admin_id,
+    name: row.name,
+    email: row.email,
+    password: row.password,
+  };
 }
 
-async function findAdminById(id: number): Promise<Admin | null> {
-  const result = await sql`select * from admin where id = ${id} limit 1`;
-  return (result as unknown as Admin[])[0] || null;
+async function findAdminByEmail(email: string): Promise<Admin | null> {
+  const row = await prisma.admin.findUnique({
+    where: { email },
+  });
+  return row ? toAdmin(row) : null;
+}
+
+async function findAdminById(adminId: string): Promise<Admin | null> {
+  const row = await prisma.admin.findUnique({
+    where: { admin_id: adminId },
+  });
+  return row ? toAdmin(row) : null;
 }
 
 export { findAdminByEmail, findAdminById };
-

@@ -27,13 +27,13 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
 
     const payload = jwt.verify(token, secret) as JwtPayload & {
       cpf?: string;
-      admin_id?: number;
+      admin_id?: string;
       role?: "client" | "admin";
     };
 
     (req as any).user = {
       cpf: payload.cpf as string | undefined,
-      admin_id: payload.admin_id as number | undefined,
+      admin_id: payload.admin_id as string | undefined,
       role: payload.role as "client" | "admin" | undefined,
     };
 

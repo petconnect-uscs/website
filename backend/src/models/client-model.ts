@@ -1,7 +1,6 @@
-import sql from "@/config/db.ts";
+import prisma from "@/prisma-client.ts";
 
 export type Client = {
-  id: number;
   cpf: string;
   name: string;
   email: string;
@@ -9,18 +8,38 @@ export type Client = {
   password?: string;
 };
 
+function formatDateOnly(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
+function toClient(row: {
+  cpf: string;
+  name: string;
+  email: string;
+  birth_date: Date;
+  password: string;
+}): Client {
+  return {
+    cpf: row.cpf,
+    name: row.name,
+    email: row.email,
+    birth_date: formatDateOnly(row.birth_date),
+    password: row.password,
+  };
+}
+
 async function findClientByEmail(email: string): Promise<Client | null> {
-  const result = await sql`
-    select * from client where email = ${email} limit 1
-  `;
-  return (result as unknown as Client[])[0] || null;
+  const row = await prisma.client.findUnique({
+    where: { email },
+  });
+  return row ? toClient(row) : null;
 }
 
 async function findClientByCpf(cpf: string): Promise<Client | null> {
-  const result = await sql`
-    select * from client where cpf = ${cpf} limit 1
-  `;
-  return (result as unknown as Client[])[0] || null;
+  const row = await prisma.client.findUnique({
+    where: { cpf },
+  });
+  return row ? toClient(row) : null;
 }
 
 async function createClient(data: {
@@ -32,21 +51,26 @@ async function createClient(data: {
 }): Promise<Client> {
   const { cpf, name, email, birth_date, passwordHash } = data;
 
-  const result = await sql`
-    insert into client (cpf, name, email, birth_date, password)
-    values (${cpf}, ${name}, ${email}, ${birth_date || null}, ${passwordHash})
-    returning *
-  `;
+  const birthDate =
+    birth_date != null && birth_date !== ""
+      ? new Date(birth_date)
+      : new Date("1970-01-01");
 
-  return (result as unknown as Client[])[0];
+  const row = await prisma.client.create({
+    data: {
+      cpf,
+      name,
+      email,
+      birth_date: birthDate,
+      password: passwordHash,
+    },
+  });
+
+  return toClient(row);
 }
 
-async function findClientById(id: number): Promise<Client | null> {
-  const result = await sql`
-    select * from client where id = ${id} limit 1
-  `;
-  return (result as unknown as Client[])[0] || null;
+async function findClientById(cpf: string): Promise<Client | null> {
+  return findClientByCpf(cpf);
 }
 
 export { findClientByEmail, findClientByCpf, createClient, findClientById };
-
