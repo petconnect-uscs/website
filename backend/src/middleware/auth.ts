@@ -1,6 +1,7 @@
-import jwt from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
+import type { NextFunction, Request, Response } from "express";
 
-function authMiddleware(req, res, next) {
+function authMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization;
 
@@ -25,22 +26,27 @@ function authMiddleware(req, res, next) {
       return res.status(500).json({ error: "JWT não configurado no servidor" });
     }
 
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret) as JwtPayload & {
+      cpf?: string;
+      admin_id?: string;
+      role?: "client" | "admin";
+    };
 
     if (!decoded.role) {
       return res.status(401).json({ error: "Token inválido (sem role)" });
     }
 
     req.user = {
-      id: decoded.admin_id || decoded.cpf,
-      admin_id: decoded.admin_id || null,
-      cpf: decoded.cpf || null,
+      id: decoded.admin_id ?? decoded.cpf,
+      admin_id: decoded.admin_id ?? undefined,
+      cpf: decoded.cpf ?? undefined,
       role: decoded.role,
     };
 
     return next();
   } catch (err) {
-    console.error("Erro ao validar token:", err.message);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Erro ao validar token:", message);
     return res.status(401).json({ error: "Token inválido ou expirado" });
   }
 }

@@ -1,15 +1,14 @@
 import express from "express";
-import authMiddleware from "../middleware/auth.js";
-import requireAdmin from "../middleware/require-admin.js";
-
+import authMiddleware from "@/middleware/auth.ts";
+import requireAdmin from "@/middleware/require-admin.ts";
 import {
   getProfile,
   updateProfile,
   getClients,
   deleteClient,
   getAppointments,
-  getRecipes
-} from "../controllers/admin-controller.js";
+  getRecipes,
+} from "@/controllers/admin-controller.ts";
 
 const router = express.Router();
 
