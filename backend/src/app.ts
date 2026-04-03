@@ -1,5 +1,6 @@
 import express from "express";
 import authRoutes from "@/routes/auth-routes.ts";
+import adminRoutes from "@/routes/admin-routes.ts";
 
 const app = express();
 
@@ -10,6 +11,6 @@ app.get("/", (_req, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
 
 export default app;
-

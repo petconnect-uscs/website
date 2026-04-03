@@ -73,4 +73,59 @@ async function findClientById(cpf: string): Promise<Client | null> {
   return findClientByCpf(cpf);
 }
 
-export { findClientByEmail, findClientByCpf, createClient, findClientById };
+export type ClientListRow = {
+  cpf: string;
+  name: string;
+  birth_date: string | null;
+  email: string;
+};
+
+async function findAllClients(): Promise<ClientListRow[]> {
+  const rows = await prisma.client.findMany({
+    where: { deleted_at: null },
+    select: {
+      cpf: true,
+      name: true,
+      birth_date: true,
+      email: true,
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return rows.map(
+    (r: {
+      cpf: string;
+      name: string;
+      birth_date: Date;
+      email: string;
+    }): ClientListRow => ({
+      cpf: r.cpf,
+      name: r.name,
+      email: r.email,
+      birth_date: r.birth_date ? formatDateOnly(r.birth_date) : null,
+    })
+  );
+}
+
+async function deleteClientByCpf(cpf: string): Promise<{ cpf: string } | null> {
+  const existing = await prisma.client.findFirst({
+    where: { cpf, deleted_at: null },
+  });
+  if (!existing) return null;
+
+  await prisma.client.update({
+    where: { cpf },
+    data: { deleted_at: new Date() },
+  });
+
+  return { cpf };
+}
+
+export {
+  findClientByEmail,
+  findClientByCpf,
+  createClient,
+  findClientById,
+  findAllClients,
+  deleteClientByCpf,
+};

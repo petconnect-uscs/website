@@ -2,48 +2,53 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { NextFunction, Request, Response } from "express";
 
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.header("Authorization");
-
-  if (!authHeader) {
-    return res.status(401).json({ error: "Token de autenticação ausente." });
-  }
-
-  const [scheme, token] = authHeader.split(" ");
-
-  if (scheme !== "Bearer" || !token) {
-    return res
-      .status(401)
-      .json({ error: "Formato de token inválido. Use Bearer <token>." });
-  }
-
   try {
-    const secret = process.env.JWT_SECRET;
+    const authHeader = req.headers.authorization;
 
-    if (!secret) {
-      return res
-        .status(500)
-        .json({ error: "Configuração de JWT_SECRET ausente no servidor." });
+    if (!authHeader) {
+      return res.status(401).json({ error: "Token não informado" });
     }
 
-    const payload = jwt.verify(token, secret) as JwtPayload & {
+    const parts = authHeader.split(" ");
+
+    if (parts.length !== 2) {
+      return res.status(401).json({ error: "Erro no formato do token" });
+    }
+
+    const [scheme, token] = parts;
+
+    if (!/^Bearer$/i.test(scheme)) {
+      return res.status(401).json({ error: "Token mal formatado" });
+    }
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ error: "JWT não configurado no servidor" });
+    }
+
+    const decoded = jwt.verify(token, secret) as JwtPayload & {
       cpf?: string;
       admin_id?: string;
       role?: "client" | "admin";
     };
 
-    (req as any).user = {
-      cpf: payload.cpf as string | undefined,
-      admin_id: payload.admin_id as string | undefined,
-      role: payload.role as "client" | "admin" | undefined,
+    if (!decoded.role) {
+      return res.status(401).json({ error: "Token inválido (sem role)" });
+    }
+
+    req.user = {
+      id: decoded.admin_id ?? decoded.cpf,
+      admin_id: decoded.admin_id ?? undefined,
+      cpf: decoded.cpf ?? undefined,
+      role: decoded.role,
     };
 
     return next();
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("Erro ao validar token:", message);
-    return res.status(401).json({ error: "Token inválido ou expirado." });
+    return res.status(401).json({ error: "Token inválido ou expirado" });
   }
 }
 
 export default authMiddleware;
-
