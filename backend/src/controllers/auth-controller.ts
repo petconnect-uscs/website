@@ -25,9 +25,11 @@ const register = asyncHandler(
 
 const login = asyncHandler((req) => auth.login(req.body as any));
 
-const me = asyncHandler((req) =>
-  auth.getAuthenticatedUser((req as any).user)
-);
+const me = asyncHandler((req) => {
+  const user = req.user;
+  if (!user) throw new auth.AppError("Não autenticado", 401);
+  return auth.getAuthenticatedUser(user);
+});
 
 export { register, login, me };
 

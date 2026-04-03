@@ -35,4 +35,16 @@ async function findAdminById(adminId: string): Promise<Admin | null> {
   return row ? toAdmin(row) : null;
 }
 
-export { findAdminByEmail, findAdminById };
+async function updateAdminById(
+  adminId: string,
+  data: { name?: string; password?: string }
+): Promise<Pick<Admin, "admin_id" | "name" | "email"> | null> {
+  const row = await prisma.admin.update({
+    where: { admin_id: adminId },
+    data,
+    select: { admin_id: true, name: true, email: true },
+  });
+  return row;
+}
+
+export { findAdminByEmail, findAdminById, updateAdminById };
