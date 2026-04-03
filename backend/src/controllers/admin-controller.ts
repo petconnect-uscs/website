@@ -37,7 +37,7 @@ const updateProfile = asyncHandler((req) => {
 const getClients = asyncHandler(() => adminService.listClientsForAdmin());
 
 const deleteClient = asyncHandler(async (req) => {
-  const cpf = req.params.cpf;
+  const cpf = req.params.cpf as string;
   await adminService.deleteClientByCpf(cpf);
   return { message: "Cliente removido com sucesso" };
 });
@@ -48,4 +48,55 @@ const getAppointments = asyncHandler(() =>
 
 const getRecipes = asyncHandler(() => adminService.listRecipesForAdmin());
 
-export { getProfile, updateProfile, getClients, deleteClient, getAppointments, getRecipes };
+const getDoctors = asyncHandler(() => adminService.listDoctorsForAdmin());
+
+const getSpecialties = asyncHandler(() =>
+  adminService.listSpecialtiesForAdmin()
+);
+
+const getDoctor = asyncHandler(async (req) => {
+  const doctorId = req.params.doctorId as string;
+  return adminService.getDoctorForAdmin(doctorId);
+});
+
+const createDoctor = asyncHandler(
+  async (req) =>
+    adminService.createDoctorForAdmin(
+      req.body as {
+        name?: string;
+        cpf?: string;
+        specialty_id?: string | null;
+      },
+      req.user?.admin_id
+    ),
+  201
+);
+
+const updateDoctor = asyncHandler(async (req) => {
+  const doctorId = req.params.doctorId as string;
+  return adminService.updateDoctorForAdmin(
+    doctorId,
+    req.body as { name?: string; cpf?: string; specialty_id?: string | null }
+  );
+});
+
+const deleteDoctor = asyncHandler(async (req) => {
+  const doctorId = req.params.doctorId as string;
+  await adminService.deleteDoctorForAdmin(doctorId);
+  return { message: "Doutor removido com sucesso" };
+});
+
+export {
+  getProfile,
+  updateProfile,
+  getClients,
+  deleteClient,
+  getAppointments,
+  getRecipes,
+  getDoctors,
+  getSpecialties,
+  getDoctor,
+  createDoctor,
+  updateDoctor,
+  deleteDoctor,
+};

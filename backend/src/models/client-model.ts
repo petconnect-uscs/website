@@ -121,6 +121,78 @@ async function deleteClientByCpf(cpf: string): Promise<{ cpf: string } | null> {
   return { cpf };
 }
 
+export type ClientProfilePublic = {
+  cpf: string;
+  name: string;
+  email: string;
+  birth_date: string | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
+function toClientProfilePublic(row: {
+  cpf: string;
+  name: string;
+  email: string;
+  birth_date: Date;
+  created_at: Date;
+  updated_at: Date;
+}): ClientProfilePublic {
+  return {
+    cpf: row.cpf,
+    name: row.name,
+    email: row.email,
+    birth_date: row.birth_date ? formatDateOnly(row.birth_date) : null,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
+async function findActiveClientProfileByCpf(
+  cpf: string
+): Promise<ClientProfilePublic | null> {
+  const row = await prisma.client.findFirst({
+    where: { cpf, deleted_at: null },
+    select: {
+      cpf: true,
+      name: true,
+      email: true,
+      birth_date: true,
+      created_at: true,
+      updated_at: true,
+    },
+  });
+  return row ? toClientProfilePublic(row) : null;
+}
+
+async function updateClientByCpf(
+  cpf: string,
+  data: { name?: string; password?: string }
+): Promise<ClientProfilePublic | null> {
+  const existing = await prisma.client.findFirst({
+    where: { cpf, deleted_at: null },
+  });
+  if (!existing) return null;
+
+  const row = await prisma.client.update({
+    where: { cpf },
+    data: {
+      ...data,
+      updated_at: new Date(),
+    },
+    select: {
+      cpf: true,
+      name: true,
+      email: true,
+      birth_date: true,
+      created_at: true,
+      updated_at: true,
+    },
+  });
+
+  return toClientProfilePublic(row);
+}
+
 export {
   findClientByEmail,
   findClientByCpf,
@@ -128,4 +200,6 @@ export {
   findClientById,
   findAllClients,
   deleteClientByCpf,
+  findActiveClientProfileByCpf,
+  updateClientByCpf,
 };

@@ -85,7 +85,10 @@ async function login(payload: {
 
   const client = await clientModel.findClientByEmail(email);
   if (client) {
-    const isValidPassword = await bcrypt.compare(password, client.password || "");
+    const isValidPassword = await bcrypt.compare(
+      password,
+      client.password || "",
+    );
     if (isValidPassword) {
       const token = createToken({
         cpf: client.cpf,
@@ -100,7 +103,7 @@ async function login(payload: {
   if (admin) {
     const isValidPassword = await bcrypt.compare(
       password,
-      admin.password || ""
+      admin.password || "",
     );
 
     if (isValidPassword) {
@@ -155,4 +158,3 @@ async function getAuthenticatedUser(userFromToken: {
 }
 
 export { registerClient, login, getAuthenticatedUser };
-

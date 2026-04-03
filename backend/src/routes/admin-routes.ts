@@ -8,6 +8,12 @@ import {
   deleteClient,
   getAppointments,
   getRecipes,
+  getDoctors,
+  getSpecialties,
+  getDoctor,
+  createDoctor,
+  updateDoctor,
+  deleteDoctor,
 } from "@/controllers/admin-controller.ts";
 
 const router = express.Router();
@@ -19,5 +25,11 @@ router.get("/clients", getClients);
 router.delete("/clients/:cpf", deleteClient);
 router.get("/appointments", getAppointments);
 router.get("/recipes", getRecipes);
+router.get("/specialties", getSpecialties);
+router.get("/doctor", getDoctors);
+router.get("/doctor/:doctorId", getDoctor);
+router.post("/doctor", createDoctor);
+router.put("/doctor/:doctorId", updateDoctor);
+router.delete("/doctor/:doctorId", deleteDoctor);
 
 export default router;

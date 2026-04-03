@@ -20,10 +20,22 @@ function asyncHandler(
 }
 
 const getAppointments = asyncHandler(async (req) => {
-  const cpf = req.user?.cpf;
-  if (!cpf) throw new AppError("Acesso restrito a clientes autenticados.", 403);
-
-  return clientService.listAppointmentsByClient(cpf);
+  return clientService.listAppointmentsByClient(req.user?.cpf);
 });
 
-export { getAppointments };
+const getProfile = asyncHandler(async (req) => {
+  return clientService.getClientProfile(req.user?.cpf);
+});
+
+const updateProfile = asyncHandler(async (req) => {
+  return clientService.updateClientProfile(
+    req.user?.cpf,
+    req.body as { name?: string; password?: string }
+  );
+});
+
+const getRecipes = asyncHandler(async (req) => {
+  return clientService.listRecipesByClient(req.user?.cpf);
+});
+
+export { getAppointments, getProfile, updateProfile, getRecipes };
