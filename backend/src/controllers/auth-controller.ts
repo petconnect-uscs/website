@@ -3,7 +3,7 @@ import * as auth from "@/services/auth-service.ts";
 
 function asyncHandler(
   serviceFn: (req: Request) => Promise<unknown>,
-  successStatus = 200
+  successStatus = 200,
 ): RequestHandler {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -20,7 +20,7 @@ function asyncHandler(
 
 const register = asyncHandler(
   (req) => auth.registerClient(req.body as any),
-  201
+  201,
 );
 
 const login = asyncHandler((req) => auth.login(req.body as any));
@@ -32,4 +32,3 @@ const me = asyncHandler((req) => {
 });
 
 export { register, login, me };
-
