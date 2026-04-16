@@ -1,8 +1,10 @@
+import { PlusIcon } from "lucide-react";
+
 import { DataTable } from "./data-table";
 import { columns, type Agendamento } from "./columns";
-import { Button } from "@/components/ui/button";
 
-import { PlusIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AppointmentSheet } from "@/components/ui/appointment-sheet";
 
 const mockAgendamentos: Agendamento[] = [
   {
@@ -196,10 +198,12 @@ export default function AgendamentosPage() {
     <main className="relative space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-foreground">Agendamentos</h1>
-        <Button>
-          <PlusIcon className="w-4 h-4" />
-          Agendar
-        </Button>
+        <AppointmentSheet>
+          <Button>
+            <PlusIcon className="w-4 h-4" />
+            Agendar
+          </Button>
+        </AppointmentSheet>
       </div>
       <DataTable columns={columns} data={mockAgendamentos} />
     </main>

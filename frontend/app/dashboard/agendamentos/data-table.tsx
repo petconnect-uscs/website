@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, Search } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -175,19 +175,19 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center justify-end gap-2">
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Anterior
+          <ArrowLeftIcon className="w-4 h-4" />
         </Button>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Próxima
+          <ArrowRightIcon className="w-4 h-4" />
         </Button>
       </div>
     </div>
