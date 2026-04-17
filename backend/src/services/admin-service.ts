@@ -86,6 +86,104 @@ async function listSpecialtiesForAdmin() {
   return specialtyModel.findAllSpecialties();
 }
 
+async function createSpecialtyForAdmin(
+  body: { name?: string; description?: string | null },
+  adminId: string | undefined
+) {
+  if (!adminId) throw new AppError("Não autenticado", 401);
+
+  const name = body.name?.trim();
+  if (!name) throw new AppError("Nome é obrigatório", 400);
+
+  let description: string | null | undefined = undefined;
+  if (body.description !== undefined) {
+    const raw = body.description;
+    if (raw === null) {
+      description = null;
+    } else {
+      const d = String(raw).trim();
+      description = d === "" ? null : d;
+    }
+  }
+
+  try {
+    return await specialtyModel.createSpecialty({
+      name,
+      description,
+      admin_id: adminId,
+    });
+  } catch (err) {
+    if (isUniqueConstraintViolation(err)) {
+      throw new AppError("Especialidade já cadastrada", 409);
+    }
+    throw err;
+  }
+}
+
+async function updateSpecialtyForAdmin(
+  specialtyId: string,
+  body: { name?: string; description?: string | null }
+) {
+  const existing = await specialtyModel.findSpecialtyById(specialtyId);
+  if (!existing) throw new AppError("Especialidade não encontrada", 404);
+
+  const clean: { name?: string; description?: string | null } = {};
+
+  if (body.name !== undefined) {
+    const n = String(body.name).trim();
+    if (!n) throw new AppError("Nome inválido", 400);
+    clean.name = n;
+  }
+
+  if (body.description !== undefined) {
+    if (body.description === null) {
+      clean.description = null;
+    } else {
+      const d = String(body.description).trim();
+      clean.description = d === "" ? null : d;
+    }
+  }
+
+  if (Object.keys(clean).length === 0) {
+    throw new AppError("Body vazio", 400);
+  }
+
+  try {
+    return await specialtyModel.updateSpecialty(specialtyId, clean);
+  } catch (err) {
+    if (isUniqueConstraintViolation(err)) {
+      throw new AppError("Especialidade já cadastrada", 409);
+    }
+    throw err;
+  }
+}
+
+async function deleteSpecialtyForAdmin(specialtyId: string) {
+  const existing = await specialtyModel.findSpecialtyById(specialtyId);
+  if (!existing) throw new AppError("Especialidade não encontrada", 404);
+
+  const [doctorCount, appointmentCount] = await Promise.all([
+    specialtyModel.countActiveDoctorsBySpecialty(specialtyId),
+    specialtyModel.countActiveAppointmentsBySpecialty(specialtyId),
+  ]);
+
+  if (doctorCount > 0) {
+    throw new AppError(
+      "Não é possível remover: há doutores ativos vinculados à especialidade",
+      409
+    );
+  }
+  if (appointmentCount > 0) {
+    throw new AppError(
+      "Não é possível remover: há agendamentos ativos vinculados à especialidade",
+      409
+    );
+  }
+
+  const deleted = await specialtyModel.softDeleteSpecialty(specialtyId);
+  if (!deleted) throw new AppError("Especialidade não encontrada", 404);
+}
+
 async function getDoctorForAdmin(doctorId: string) {
   const doctor = await doctorModel.findDoctorById(doctorId);
   if (!doctor) throw new AppError("Doutor não encontrado", 404);
@@ -188,6 +286,9 @@ export {
   listRecipesForAdmin,
   listDoctorsForAdmin,
   listSpecialtiesForAdmin,
+  createSpecialtyForAdmin,
+  updateSpecialtyForAdmin,
+  deleteSpecialtyForAdmin,
   getDoctorForAdmin,
   createDoctorForAdmin,
   updateDoctorForAdmin,
