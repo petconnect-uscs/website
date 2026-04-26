@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { backend, readErrorMessage } from "@/lib/backend";
 import { createSession, deleteSession } from "@/lib/session";
 
-export type AuthFormState = { error?: string } | undefined;
+type AuthFormState = { error?: string } | undefined;
 
 type TokenResponse = { token: string };
 

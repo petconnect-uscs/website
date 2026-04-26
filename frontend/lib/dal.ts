@@ -7,8 +7,6 @@ import { backend } from "@/lib/backend";
 import { getSessionToken } from "@/lib/session";
 import type { AuthUser } from "@/lib/types";
 
-export type { AuthUser };
-
 export const verifySession = cache(async () => {
 	const token = await getSessionToken();
 
