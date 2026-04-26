@@ -1,17 +1,17 @@
 import { Sidebar } from "@/components/sidebar";
-import { AuthProvider } from "@/contexts/auth-context";
+import { getUser } from "@/lib/dal";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
+	const user = await getUser();
+
 	return (
-		<AuthProvider>
-			<main className="flex">
-				<Sidebar />
-				<article className="flex-1 px-15 my-16">{children}</article>
-			</main>
-		</AuthProvider>
+		<main className="flex">
+			<Sidebar user={user} />
+			<article className="flex-1 px-15 my-16">{children}</article>
+		</main>
 	);
 }

@@ -16,7 +16,7 @@ import {
 import logo from "@/assets/logo.png";
 
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/auth-context";
+import type { AuthUser } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
 import { SettingsMenu } from "./settings-menu";
@@ -39,14 +39,13 @@ const items = [
 	},
 ];
 
-export function Sidebar() {
+export function Sidebar({ user }: { user: AuthUser }) {
 	const pathname = usePathname();
-	const { user, isLoading } = useAuth();
 
 	return (
 		<aside className="w-80 h-screen border-r border-gray-200 flex flex-col justify-between">
-			<header className="p-4 flex justify-between items-center border-b border-gray-200">
-				<Image src={logo} alt="Logo" width={50} />
+			<header className="p-4">
+				<Image src={logo} alt="Logo" width={42} />
 			</header>
 
 			<nav className="px-4 flex-grow mt-30">
@@ -86,14 +85,12 @@ export function Sidebar() {
 			</nav>
 
 			<footer className="h-16 p-4 border-t border-gray-200 flex items-center justify-between">
-				<p className="text-sm font-medium">
-					{isLoading ? "..." : (user?.name ?? "—")}
-				</p>
+				<p className="text-sm font-medium">{user.name}</p>
 				<SettingsMenu>
 					<Button
 						variant="ghost"
 						size="icon"
-						className="group-data-[state='open']:bg-accent"
+						className="data-[state=open]:bg-accent focus-visible:ring-0 focus-visible:border-transparent"
 					>
 						<EllipsisIcon className="text-muted-foreground" />
 					</Button>

@@ -1,3 +1,6 @@
+"use client";
+
+import { logoutAction } from "@/app/actions/auth";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -5,31 +8,30 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/contexts/auth-context";
 
 import { LogOutIcon, SettingsIcon } from "lucide-react";
 
 export function SettingsMenu({ children }: { children: React.ReactNode }) {
-	const { logout } = useAuth();
-
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild className="group">
-				{children}
-			</DropdownMenuTrigger>
+			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 			<DropdownMenuContent className="w-48" align="start">
 				<DropdownMenuItem>
 					<SettingsIcon />
 					Configurações
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem
-					onSelect={() => logout()}
-					className="!text-destructive focus:bg-destructive/10"
-				>
-					<LogOutIcon className="text-inherit" />
-					Sair
-				</DropdownMenuItem>
+				<form action={logoutAction}>
+					<DropdownMenuItem
+						asChild
+						className="!text-destructive focus:bg-destructive/10"
+					>
+						<button type="submit" className="w-full">
+							<LogOutIcon className="text-inherit" />
+							Sair
+						</button>
+					</DropdownMenuItem>
+				</form>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
