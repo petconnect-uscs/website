@@ -54,7 +54,7 @@ export function Sidebar() {
               <Link
                 href={item.path}
                 className={cn(
-                  "relative w-full flex py-1.5 px-2.5 rounded-[6px] gap-[11px] items-center",
+                  "relative w-full flex py-1.5 px-2.5 rounded-[10px] gap-[11px] items-center",
                   pathname === item.path
                     ? "text-foreground"
                     : "text-muted-foreground fill-muted-foreground transition-colors hover:fill-foreground hover:text-foreground",
@@ -68,7 +68,6 @@ export function Sidebar() {
                     <motion.div
                       layoutId="active-pill"
                       className="absolute inset-0 bg-[#EFF1F3] rounded-[10px] -z-10"
-                      style={{ borderRadius: 8 }}
                       transition={{
                         type: "spring",
                         duration: 0.4,
