@@ -189,6 +189,7 @@ export function DataTable<TData, TValue>({
         >
           <ArrowRightIcon className="w-4 h-4" />
         </Button>
+        </Button>
       </div>
     </div>
   );

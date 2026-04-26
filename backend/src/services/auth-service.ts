@@ -1,19 +1,28 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import * as clientModel from "../models/client-model.js";
-import * as adminModel from "../models/admin-model.js";
+import * as clientModel from "@/models/client-model.ts";
+import * as adminModel from "@/models/admin-model.ts";
 
-class AppError extends Error {
-  constructor(message, statusCode) {
+export class AppError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode: number) {
     super(message);
     this.statusCode = statusCode;
   }
 }
 
-// usa a variável diretamente
 const JWT_SECRET = process.env.JWT_SECRET;
 
-function createToken(payload) {
+type TokenPayload =
+  | { cpf: string; role: "client" }
+  | { admin_id: string; role: "admin" };
+
+type AuthenticatedUser =
+  | { cpf: string; name: string; email: string; role: "client" }
+  | { admin_id: string; name: string; email: string; role: "admin" };
+
+function createToken(payload: TokenPayload) {
   if (!JWT_SECRET) {
     throw new AppError("Configuração JWT_SECRET ausente no servidor.", 500);
   }
@@ -23,7 +32,13 @@ function createToken(payload) {
   });
 }
 
-async function registerClient(payload) {
+async function registerClient(payload: {
+  cpf?: string;
+  name?: string;
+  email?: string;
+  birth_date?: string | null;
+  password?: string;
+}): Promise<{ token: string }> {
   const { cpf, name, email, birth_date, password } = payload;
 
   if (!cpf || !email || !name || !password) {
@@ -46,19 +61,22 @@ async function registerClient(payload) {
     cpf,
     name,
     email,
+    birth_date: birth_date ?? null,
     passwordHash,
-    birth_date,
   });
 
   const token = createToken({
-    id: client.id,
+    cpf: client.cpf,
     role: "client",
   });
 
   return { token };
 }
 
-async function login(payload) {
+async function login(payload: {
+  email?: string;
+  password?: string;
+}): Promise<{ token: string }> {
   const { email, password } = payload;
 
   if (!email || !password) {
@@ -66,10 +84,11 @@ async function login(payload) {
   }
 
   const client = await clientModel.findClientByEmail(email);
-
   if (client) {
-    const isValidPassword = await bcrypt.compare(password, client.password);
-
+    const isValidPassword = await bcrypt.compare(
+      password,
+      client.password || "",
+    );
     if (isValidPassword) {
       const token = createToken({
         cpf: client.cpf,
@@ -81,9 +100,11 @@ async function login(payload) {
   }
 
   const admin = await adminModel.findAdminByEmail(email);
-
   if (admin) {
-    const isValidPassword = await bcrypt.compare(password, admin.password);
+    const isValidPassword = await bcrypt.compare(
+      password,
+      admin.password || "",
+    );
 
     if (isValidPassword) {
       const token = createToken({
@@ -98,7 +119,11 @@ async function login(payload) {
   throw new AppError("Usuário ou senha incorretos.", 401);
 }
 
-async function getAuthenticatedUser(userFromToken) {
+async function getAuthenticatedUser(userFromToken: {
+  cpf?: string;
+  admin_id?: string;
+  role?: "client" | "admin";
+}): Promise<AuthenticatedUser> {
   const { cpf, admin_id, role } = userFromToken;
 
   if (role === "client") {
@@ -132,4 +157,4 @@ async function getAuthenticatedUser(userFromToken) {
   throw new AppError("Tipo de usuário inválido no token.", 401);
 }
 
-export { AppError, registerClient, login, getAuthenticatedUser };
+export { registerClient, login, getAuthenticatedUser };
