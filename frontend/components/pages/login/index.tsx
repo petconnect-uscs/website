@@ -9,8 +9,9 @@ import { toast } from "sonner";
 import { loginAction } from "@/app/actions/auth";
 import { AuthLayout } from "@/components/layouts/auth-layout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Input } from "@/components/ui/input";
 
 export function Login() {
 	const [state, formAction, isPending] = useActionState(loginAction, undefined);
@@ -33,7 +34,7 @@ export function Login() {
 					/>
 				</div>
 				<div className="flex flex-col gap-3">
-					<div className="flex items-center justify-between">
+					{/* <div className="flex items-center justify-between">
 						<Label htmlFor="senha">Senha</Label>
 						<Link
 							href="/forget"
@@ -41,9 +42,8 @@ export function Login() {
 						>
 							Esqueceu a senha?
 						</Link>
-					</div>
-					<Input
-						type="password"
+					</div> */}
+					<PasswordInput
 						id="senha"
 						name="password"
 						placeholder="••••••••••"
