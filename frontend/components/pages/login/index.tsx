@@ -1,78 +1,102 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
+import { useState } from "react";
+import { Link } from "next-view-transitions";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-import banner from "@/assets/banner.png";
-import logo from "@/assets/logo.png";
-
+import { AuthLayout } from "@/components/layouts/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ApiError, api } from "@/lib/api";
+import { setToken } from "@/lib/auth";
+
+type LoginResponse = { token: string };
 
 export function Login() {
-  const router = useRouter();
+	const router = useRouter();
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    router.push("/dashboard");
-  }
+	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+		e.preventDefault();
 
-  return (
-    <main className="flex">
-      <Image
-        src={banner}
-        alt="banner"
-        width={1000}
-        height={1000}
-        className="h-screen border-r border-border"
-      />
+		setIsSubmitting(true);
 
-      <div className="flex flex-col justify-center gap-10 mt-20 max-w-xl mx-auto w-full">
-        <div className="flex flex-col gap-4">
-          <Image
-            src={logo}
-            alt="logo"
-            width={100}
-            height={100}
-            className="w-20 mb-2"
-          />
-          <h1 className="text-6xl font-semibold">Bem vindo!</h1>
-          <p>Faça o login em sua conta</p>
-        </div>
+		try {
+			const { token } = await api<LoginResponse>("/auth/login", {
+				method: "POST",
+				auth: false,
+				body: { email, password },
+			});
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-          <div className="flex flex-col gap-3">
-            <Label htmlFor="email">Email</Label>
-            <Input type="email" id="email" placeholder="seuemail@gmail.com" />
-          </div>
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="senha">Senha</Label>
-              <Link href="/forget" className="text-sm text-foreground/60">
-                Esqueceu a senha?
-              </Link>
-            </div>
-            <Input type="password" id="senha" placeholder="**********" />
-          </div>
+			setToken(token);
 
-          <Button size="lg">Entrar</Button>
+			toast.success("Login realizado com sucesso.");
 
-          <div className="flex items-center justify-center">
-            <p>
-              Não tem uma conta?{" "}
-              <Link
-                href="/cadastro"
-                className="underline underline-offset-4 decoration-neutral-400"
-              >
-                Cadastre-se agora
-              </Link>
-            </p>
-          </div>
-        </form>
-      </div>
-    </main>
-  );
+			router.push("/dashboard");
+		} catch (err) {
+			const message =
+				err instanceof ApiError ? err.message : "Falha ao fazer login.";
+			toast.error(message);
+		} finally {
+			setIsSubmitting(false);
+		}
+	}
+
+	return (
+		<AuthLayout title="Bem vindo!" description="Faça o login em sua conta">
+			<form onSubmit={handleSubmit} className="flex flex-col gap-8">
+				<div className="flex flex-col gap-3">
+					<Label htmlFor="email">Email</Label>
+					<Input
+						type="email"
+						id="email"
+						placeholder="seuemail@gmail.com"
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						required
+					/>
+				</div>
+				<div className="flex flex-col gap-3">
+					<div className="flex items-center justify-between">
+						<Label htmlFor="senha">Senha</Label>
+						<Link
+							href="/forget"
+							className="text-xs text-foreground/60 transition-colors hover:text-foreground"
+						>
+							Esqueceu a senha?
+						</Link>
+					</div>
+					<Input
+						type="password"
+						id="senha"
+						placeholder="••••••••••"
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						required
+					/>
+				</div>
+
+				<Button size="lg" type="submit" disabled={isSubmitting}>
+					{isSubmitting ? "Entrando..." : "Entrar"}
+				</Button>
+
+				<div className="flex items-center justify-center">
+					<p className="text-sm">
+						Não tem uma conta?{" "}
+						<Link
+							href="/cadastro"
+							className="underline underline-offset-4 decoration-neutral-400"
+						>
+							Cadastre-se agora
+						</Link>
+					</p>
+				</div>
+			</form>
+		</AuthLayout>
+	);
 }
