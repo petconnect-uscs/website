@@ -10,6 +10,9 @@ import {
   getRecipes,
   getDoctors,
   getSpecialties,
+  createSpecialty,
+  updateSpecialty,
+  deleteSpecialty,
   getDoctor,
   createDoctor,
   updateDoctor,
@@ -26,6 +29,9 @@ router.delete("/clients/:cpf", deleteClient);
 router.get("/appointments", getAppointments);
 router.get("/recipes", getRecipes);
 router.get("/specialties", getSpecialties);
+router.post("/specialties", createSpecialty);
+router.put("/specialties/:id", updateSpecialty);
+router.delete("/specialties/:id", deleteSpecialty);
 router.get("/doctor", getDoctors);
 router.get("/doctor/:doctorId", getDoctor);
 router.post("/doctor", createDoctor);

@@ -54,6 +54,29 @@ const getSpecialties = asyncHandler(() =>
   adminService.listSpecialtiesForAdmin()
 );
 
+const createSpecialty = asyncHandler(
+  (req) =>
+    adminService.createSpecialtyForAdmin(
+      req.body as { name?: string; description?: string | null },
+      req.user?.admin_id
+    ),
+  201
+);
+
+const updateSpecialty = asyncHandler((req) => {
+  const specialtyId = req.params.id as string;
+  return adminService.updateSpecialtyForAdmin(
+    specialtyId,
+    req.body as { name?: string; description?: string | null }
+  );
+});
+
+const deleteSpecialty = asyncHandler(async (req) => {
+  const specialtyId = req.params.id as string;
+  await adminService.deleteSpecialtyForAdmin(specialtyId);
+  return { message: "Especialidade removida com sucesso" };
+});
+
 const getDoctor = asyncHandler(async (req) => {
   const doctorId = req.params.doctorId as string;
   return adminService.getDoctorForAdmin(doctorId);
@@ -95,6 +118,9 @@ export {
   getRecipes,
   getDoctors,
   getSpecialties,
+  createSpecialty,
+  updateSpecialty,
+  deleteSpecialty,
   getDoctor,
   createDoctor,
   updateDoctor,
