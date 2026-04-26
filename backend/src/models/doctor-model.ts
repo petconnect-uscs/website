@@ -94,9 +94,22 @@ async function softDeleteDoctor(
   return { doctor_id: doctorId };
 }
 
+async function findDoctorsBySpecialtyId(
+  specialtyId: string
+): Promise<DoctorListRow[]> {
+  return prisma.doctor.findMany({
+    where: { deleted_at: null, specialty_id: specialtyId },
+    orderBy: { name: "asc" },
+    include: {
+      specialty: { select: specialtySelect },
+    },
+  });
+}
+
 export {
   findAllDoctors,
   findDoctorById,
+  findDoctorsBySpecialtyId,
   createDoctor,
   updateDoctor,
   softDeleteDoctor,

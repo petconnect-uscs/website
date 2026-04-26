@@ -38,4 +38,34 @@ const getRecipes = asyncHandler(async (req) => {
   return clientService.listRecipesByClient(req.user?.cpf);
 });
 
-export { getAppointments, getProfile, updateProfile, getRecipes };
+const createAppointment = asyncHandler(async (req) => {
+  return clientService.createAppointment(req.user?.cpf, req.body);
+}, 201);
+
+const getClientPets = asyncHandler(async (req) => {
+  return clientService.listClientPets(req.user?.cpf);
+});
+
+const getSpecialties = asyncHandler(async (_req) => {
+  return clientService.listSpecialties();
+});
+
+const getDoctors = asyncHandler(async (req) => {
+  return clientService.listDoctors(req.query.specialty_id as string | undefined);
+});
+
+const getDoctorAvailability = asyncHandler(async (req) => {
+  return clientService.getDoctorAvailability(req.params.doctorId);
+});
+
+export {
+  getAppointments,
+  getProfile,
+  updateProfile,
+  getRecipes,
+  createAppointment,
+  getClientPets,
+  getSpecialties,
+  getDoctors,
+  getDoctorAvailability,
+};
