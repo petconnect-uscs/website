@@ -4,6 +4,8 @@ export const metadata: Metadata = {
   title: "Confirmação de email",
 };
 
+// TODO(api): no backend route exists for email confirmation flow.
+// Wire to e.g. POST /auth/confirm-email once it is implemented.
 export default function EmailPage() {
   return (
     <main className="flex min-h-screen items-center justify-center">

@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: "Recuperar senha",
 };
 
+// TODO(api): no backend route exists for requesting a password-reset email.
+// Wire to e.g. POST /auth/forgot-password once it is implemented.
 export default function SenhaPage() {
   return (
     <main className="flex">

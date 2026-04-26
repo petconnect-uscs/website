@@ -1,36 +1,38 @@
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+"use client";
 
+import { logoutAction } from "@/app/actions/auth";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 import { LogOutIcon, SettingsIcon } from "lucide-react";
 
 export function SettingsMenu({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="group">{children}</DropdownMenuTrigger>
-      <DropdownMenuContent className="w-48" align="start">
-        <DropdownMenuItem>
-          <SettingsIcon />
-          Configurações
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => router.push("/")}
-          className="!text-destructive focus:bg-destructive/10"
-        >
-          <LogOutIcon className="text-inherit" />
-          Sair
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+			<DropdownMenuContent className="w-48" align="start">
+				<DropdownMenuItem>
+					<SettingsIcon />
+					Configurações
+				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<form action={logoutAction}>
+					<DropdownMenuItem
+						asChild
+						className="!text-destructive focus:bg-destructive/10"
+					>
+						<button type="submit" className="w-full">
+							<LogOutIcon className="text-inherit" />
+							Sair
+						</button>
+					</DropdownMenuItem>
+				</form>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
 }
