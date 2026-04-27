@@ -19,12 +19,7 @@ export default async function AgendamentosPage() {
 				<h1 className="text-2xl font-semibold text-foreground tracking-tight">
 					Agendamentos
 				</h1>
-				<AppointmentSheet options={options}>
-					<Button size="sm" variant="outline" className="shrink-0">
-						<PlusIcon className="w-4 h-4" />
-						Agendar
-					</Button>
-				</AppointmentSheet>
+				<AppointmentSheet options={options} />
 			</div>
 			<DataTable columns={columns} data={agendamentos} />
 		</main>

@@ -88,14 +88,12 @@ export function TermsModal({
 					<Button
 						type="button"
 						variant="outline"
-						size="sm"
 						onClick={() => onOpenChange(false)}
 					>
 						Cancelar
 					</Button>
 					<Button
 						type="button"
-						size="sm"
 						onClick={() => {
 							onAccept();
 							onOpenChange(false);

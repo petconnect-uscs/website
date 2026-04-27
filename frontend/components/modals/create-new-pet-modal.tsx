@@ -219,7 +219,6 @@ export function CreateNewPetModal({
 										<Button
 											variant="outline"
 											id="date"
-											size="sm"
 											className="w-full justify-between font-normal text-sm text-muted-foreground pl-3! pr-2!"
 										>
 											{date ? date.toLocaleDateString("pt-BR") : "Selecionar"}

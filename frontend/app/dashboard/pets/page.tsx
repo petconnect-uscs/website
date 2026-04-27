@@ -108,7 +108,7 @@ export default function PetsPage() {
 						<span className="text-muted-foreground text-xl font-semibold">
 							Nenhum pet encontrado
 						</span>
-						<Button onClick={() => setIsOpen(true)} size="sm">
+						<Button onClick={() => setIsOpen(true)}>
 							<PlusIcon className="w-4 h-4" />
 							Cadastrar
 						</Button>

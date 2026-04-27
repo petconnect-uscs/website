@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { PlusIcon } from "lucide-react";
 
 import {
 	createAppointmentAction,
@@ -31,7 +32,6 @@ import { ScrollArea } from "./scroll-area";
 
 type AppointmentSheetProps = {
 	options?: AppointmentFormOptions;
-	children: React.ReactNode;
 };
 
 const SLOT_TIMES = Array.from(
@@ -52,7 +52,7 @@ function buildAppointmentDate(date: Date | null, time: string): string | null {
 	return merged.toISOString();
 }
 
-export function AppointmentSheet({ options, children }: AppointmentSheetProps) {
+export function AppointmentSheet({ options }: AppointmentSheetProps) {
 	const safeOptions: AppointmentFormOptions = options ?? {
 		pets: [],
 		specialties: [],
@@ -122,7 +122,12 @@ export function AppointmentSheet({ options, children }: AppointmentSheetProps) {
 				if (!nextOpen) resetForm();
 			}}
 		>
-			<SheetTrigger asChild>{children}</SheetTrigger>
+			<SheetTrigger asChild>
+				<Button variant="outline" className="shrink-0">
+					<PlusIcon className="w-4 h-4" />
+					Agendar
+				</Button>
+			</SheetTrigger>
 			<SheetContent>
 				<SheetHeader>
 					<SheetTitle>Agendar consulta</SheetTitle>
