@@ -25,14 +25,10 @@ export default function ForgetPage() {
 				</div>
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="confirmar-senha">Confirmar Senha</Label>
-					<Input
-						type="password"
-						id="confirmar-senha"
-						placeholder="*********"
-					/>
+					<Input type="password" id="confirmar-senha" placeholder="*********" />
 				</div>
 
-				<Button size="lg">Alterar Senha</Button>
+				<Button>Alterar Senha</Button>
 
 				<div className="flex items-center justify-center">
 					<p className="text-sm">

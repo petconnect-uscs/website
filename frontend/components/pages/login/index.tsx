@@ -21,8 +21,11 @@ export function Login() {
 	}, [state]);
 
 	return (
-		<AuthLayout title="Bem vindo!" description="Faça o login em sua conta">
-			<form action={formAction} className="flex flex-col gap-8">
+		<AuthLayout
+			title="Acesse sua conta"
+			description="Faça login para continuar"
+		>
+			<form action={formAction} className="flex flex-col gap-6">
 				<div className="flex flex-col gap-3">
 					<Label htmlFor="email">Email</Label>
 					<Input
@@ -43,6 +46,7 @@ export function Login() {
 							Esqueceu a senha?
 						</Link>
 					</div> */}
+					<Label htmlFor="senha">Senha</Label>
 					<PasswordInput
 						id="senha"
 						name="password"
@@ -51,7 +55,7 @@ export function Login() {
 					/>
 				</div>
 
-				<Button size="lg" type="submit" disabled={isPending}>
+				<Button type="submit" disabled={isPending}>
 					{isPending ? "Entrando..." : "Entrar"}
 				</Button>
 

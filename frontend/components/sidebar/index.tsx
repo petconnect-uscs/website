@@ -92,7 +92,7 @@ export function Sidebar({ user }: { user: AuthUser }) {
 						size="icon"
 						className="data-[state=open]:bg-accent focus-visible:ring-0 focus-visible:border-transparent"
 					>
-						<EllipsisIcon className="text-muted-foreground" />
+						<EllipsisIcon className="text-muted-foreground size-4.5" />
 					</Button>
 				</SettingsMenu>
 			</footer>

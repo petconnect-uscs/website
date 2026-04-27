@@ -78,12 +78,8 @@ export default function PetsPage() {
 										</div>
 									</div>
 									<div className="flex justify-between gap-1 mt-6 p-1">
-										<Button size="lg" className="flex-grow">
-											Ver Vacinas
-										</Button>
-										<Button size="lg" variant="outline">
-											Excluir
-										</Button>
+										<Button className="flex-grow">Ver Vacinas</Button>
+										<Button variant="outline">Excluir</Button>
 									</div>
 								</div>
 							))}

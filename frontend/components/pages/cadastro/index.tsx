@@ -43,7 +43,7 @@ export function Cadastro() {
 	}, [state]);
 
 	return (
-		<AuthLayout title="Comece aqui" description="Crie uma nova conta">
+		<AuthLayout title="Novo por aqui?" description="Crie sua conta">
 			<form action={formAction} className="flex flex-col gap-6">
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="nome">Nome</Label>
@@ -112,7 +112,7 @@ export function Cadastro() {
 						</span>
 					</div>
 				</div>
-				<Button size="lg" type="submit" disabled={isPending}>
+				<Button type="submit" disabled={isPending}>
 					{isPending ? "Cadastrando..." : "Cadastrar"}
 				</Button>
 
