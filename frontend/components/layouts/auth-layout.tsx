@@ -12,16 +12,16 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
 	return (
 		<main className="flex flex-col my-20">
 			<div className="flex flex-col justify-center gap-10 mt-20 max-w-lg mx-auto w-full">
-				<div className="flex flex-col gap-4">
+				<div className="flex flex-col gap-2">
 					<Image
 						src={logo}
 						alt="logo"
 						width={100}
 						height={100}
-						className="w-16 mb-2"
+						className="w-14 mb-4"
 					/>
-					<h1 className="text-5xl font-semibold tracking-tight">{title}</h1>
-					<p>{description}</p>
+					<h1 className="text-4xl font-semibold tracking-tight">{title}</h1>
+					<p className="text-muted-foreground">{description}</p>
 				</div>
 
 				{children}

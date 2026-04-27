@@ -90,6 +90,12 @@
 	button {
 		@apply cursor-pointer;
 	}
+	::selection {
+		@apply bg-primary/40;
+	}
+	:is(input, button, textarea, img, aside) {
+		@apply select-none;
+	}
 }
 
 @layer utilities {
