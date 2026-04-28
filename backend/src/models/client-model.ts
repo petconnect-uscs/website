@@ -148,6 +148,14 @@ function toClientProfilePublic(row: {
   };
 }
 
+async function findClientNameByCpf(cpf: string): Promise<string | null> {
+  const row = await prisma.client.findFirst({
+    where: { cpf, deleted_at: null },
+    select: { name: true },
+  });
+  return row ? row.name : null;
+}
+
 async function findActiveClientProfileByCpf(
   cpf: string
 ): Promise<ClientProfilePublic | null> {
@@ -202,4 +210,5 @@ export {
   deleteClientByCpf,
   findActiveClientProfileByCpf,
   updateClientByCpf,
+  findClientNameByCpf,
 };

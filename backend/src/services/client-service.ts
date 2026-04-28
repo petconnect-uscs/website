@@ -15,10 +15,28 @@ async function listAppointmentsByClient(cpf: string | undefined) {
   return appointmentModel.findAppointmentsByClientCpf(cpf);
 }
 
+async function listAppointmentHistoryByClient(cpf: string | undefined) {
+  if (!cpf) {
+    throw new AppError("CPF não informado no token", 401);
+  }
+
+  return appointmentModel.findPastAppointmentsByClientCpf(cpf);
+}
+
+async function getClientName(cpf: string | undefined) {
+  if (!cpf) {
+    throw new AppError("CPF não informado no token", 401);
+  }
+
+  const name = await clientModel.findClientNameByCpf(cpf);
+  return name;
+}
+
 async function getClientProfile(cpf: string | undefined) {
   if (!cpf) {
     throw new AppError("CPF não informado no token", 401);
   }
+
 
   const profile = await clientModel.findActiveClientProfileByCpf(cpf);
   if (!profile) {
@@ -152,6 +170,7 @@ async function getDoctorAvailability(doctorId: string | undefined) {
 
 export {
   listAppointmentsByClient,
+  listAppointmentHistoryByClient,
   getClientProfile,
   updateClientProfile,
   listRecipesByClient,
@@ -160,4 +179,5 @@ export {
   listSpecialties,
   listDoctors,
   getDoctorAvailability,
+  getClientName,
 };

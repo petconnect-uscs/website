@@ -23,8 +23,16 @@ const getAppointments = asyncHandler(async (req) => {
   return clientService.listAppointmentsByClient(req.user?.cpf);
 });
 
+const getAppointmentHistory = asyncHandler(async (req) => {
+  return clientService.listAppointmentHistoryByClient(req.user?.cpf);
+});
+
 const getProfile = asyncHandler(async (req) => {
   return clientService.getClientProfile(req.user?.cpf);
+});
+
+const getName = asyncHandler(async (req) => {
+  return clientService.getClientName(req.user?.cpf);
 });
 
 const updateProfile = asyncHandler(async (req) => {
@@ -60,6 +68,7 @@ const getDoctorAvailability = asyncHandler(async (req) => {
 
 export {
   getAppointments,
+  getAppointmentHistory,
   getProfile,
   updateProfile,
   getRecipes,
@@ -68,4 +77,5 @@ export {
   getSpecialties,
   getDoctors,
   getDoctorAvailability,
+  getName,
 };

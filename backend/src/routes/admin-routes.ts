@@ -1,6 +1,7 @@
 import express from "express";
 import authMiddleware from "@/middleware/auth.ts";
 import requireAdmin from "@/middleware/require-admin.ts";
+import upload from "@/middleware/upload.ts";
 import {
   getProfile,
   updateProfile,
@@ -17,6 +18,9 @@ import {
   createDoctor,
   updateDoctor,
   deleteDoctor,
+  createRecipe,
+  deleteRecipe,
+  uploadRecipePdf,
 } from "@/controllers/admin-controller.ts";
 
 const router = express.Router();
@@ -28,6 +32,9 @@ router.get("/clients", getClients);
 router.delete("/clients/:cpf", deleteClient);
 router.get("/appointments", getAppointments);
 router.get("/recipes", getRecipes);
+router.post("/recipes/upload", upload.single("pdf"), uploadRecipePdf);
+router.post("/recipes", createRecipe);
+router.delete("/recipes/:id", deleteRecipe);
 router.get("/specialties", getSpecialties);
 router.post("/specialties", createSpecialty);
 router.put("/specialties/:id", updateSpecialty);

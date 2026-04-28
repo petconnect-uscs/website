@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response, RequestHandler } from "express";
+import type multer from "multer";
 import * as adminService from "@/services/admin-service.ts";
 import { AppError } from "@/services/auth-service.ts";
 
@@ -109,6 +110,28 @@ const deleteDoctor = asyncHandler(async (req) => {
   return { message: "Doutor removido com sucesso" };
 });
 
+const uploadRecipePdf: RequestHandler = (req, res) => {
+  const file = req.file as Express.Multer.File | undefined;
+  if (!file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado" });
+  }
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const pdf_url = `${baseUrl}/public/pdfs/${file.filename}`;
+  return res.status(201).json({ pdf_url });
+};
+
+const createRecipe = asyncHandler(
+  (req) => adminService.createRecipeForAdmin(req.body, req.user?.admin_id),
+  201
+);
+
+const deleteRecipe = asyncHandler(async (req) => {
+  const id = Number(req.params.id);
+  if (isNaN(id)) throw new AppError("ID inválido", 400);
+  await adminService.deleteRecipeForAdmin(id);
+  return { message: "Receita removida com sucesso" };
+});
+
 export {
   getProfile,
   updateProfile,
@@ -125,4 +148,7 @@ export {
   createDoctor,
   updateDoctor,
   deleteDoctor,
+  createRecipe,
+  deleteRecipe,
+  uploadRecipePdf,
 };
