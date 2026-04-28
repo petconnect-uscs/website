@@ -277,6 +277,44 @@ async function deleteDoctorForAdmin(doctorId: string) {
   if (!deleted) throw new AppError("Doutor não encontrado", 404);
 }
 
+async function createRecipeForAdmin(
+  body: {
+    description?: string;
+    pet_id?: string;
+    client_cpf?: string;
+    doctor_id?: string | null;
+    pdf_url?: string | null;
+  },
+  adminId: string | undefined
+) {
+  if (!adminId) throw new AppError("Não autenticado", 401);
+
+  const description = body.description?.trim();
+  const pet_id = body.pet_id?.trim();
+  const client_cpf = body.client_cpf?.trim();
+
+  if (!description || !pet_id || !client_cpf) {
+    throw new AppError(
+      "description, pet_id e client_cpf são obrigatórios",
+      400
+    );
+  }
+
+  return recipeModel.createRecipe({
+    description,
+    pet_id,
+    client_cpf,
+    doctor_id: body.doctor_id ?? null,
+    pdf_url: body.pdf_url ?? null,
+    admin_id: adminId,
+  });
+}
+
+async function deleteRecipeForAdmin(recipeId: number) {
+  const deleted = await recipeModel.softDeleteRecipe(recipeId);
+  if (!deleted) throw new AppError("Receita não encontrada", 404);
+}
+
 export {
   getAdminProfile,
   updateAdminProfile,
@@ -293,4 +331,6 @@ export {
   createDoctorForAdmin,
   updateDoctorForAdmin,
   deleteDoctorForAdmin,
+  createRecipeForAdmin,
+  deleteRecipeForAdmin,
 };

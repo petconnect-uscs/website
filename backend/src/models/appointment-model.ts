@@ -40,6 +40,35 @@ async function findAppointmentsByClientCpf(
   );
 }
 
+async function findPastAppointmentsByClientCpf(
+  cpf: string
+): Promise<AppointmentRowForClient[]> {
+  const rows = await prisma.appointment.findMany({
+    where: {
+      deleted_at: null,
+      appointment_date: { lt: new Date() },
+      pet: { client_cpf: cpf, deleted_at: null },
+    },
+    orderBy: { appointment_date: "desc" },
+    include: {
+      pet: { select: { pet_id: true, name: true } },
+      doctor: { select: { name: true } },
+      specialty: { select: { name: true } },
+    },
+  });
+
+  return rows.map(
+    (a: (typeof rows)[number]): AppointmentRowForClient => ({
+      appointment_id: a.appointment_id,
+      appointment_date: a.appointment_date,
+      pet_id: a.pet_id,
+      pet_name: a.pet?.name ?? null,
+      doctor_name: a.doctor?.name ?? null,
+      specialty_name: a.specialty?.name ?? null,
+    })
+  );
+}
+
 async function findAllAppointments() {
   return prisma.appointment.findMany({
     orderBy: { appointment_date: "desc" },
@@ -95,6 +124,7 @@ async function findBookedDatesByDoctor(doctorId: string): Promise<Date[]> {
 
 export {
   findAppointmentsByClientCpf,
+  findPastAppointmentsByClientCpf,
   findAllAppointments,
   createAppointment,
   findBookedDatesByDoctor,
