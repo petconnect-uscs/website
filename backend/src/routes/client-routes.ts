@@ -8,12 +8,12 @@ import {
   updateProfile,
   getRecipes,
   createAppointment,
-  getClientPets,
   getSpecialties,
   getDoctors,
   getDoctorAvailability,
   getName,
 } from "@/controllers/client-controller.ts";
+import petRouter from "@/routes/pet-routes.ts";
 
 const router = express.Router();
 
@@ -21,7 +21,7 @@ router.use(authMiddleware, requireClient);
 router.get("/profile", getProfile);
 router.get("/name", getName);
 router.put("/profile", updateProfile);
-router.get("/pets", getClientPets);
+router.use("/pets", petRouter);
 router.get("/specialties", getSpecialties);
 router.get("/doctors", getDoctors);
 router.get("/doctors/:doctorId/availability", getDoctorAvailability);

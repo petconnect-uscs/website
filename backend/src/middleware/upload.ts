@@ -24,4 +24,25 @@ const upload = multer({
   },
 });
 
+const imageStorage = multer.diskStorage({
+  destination: path.join(__dirname, "../public/imgs"),
+  filename: (_req, file, cb) => {
+    const timestamp = Date.now();
+    const safe = file.originalname.replace(/\s+/g, "_");
+    cb(null, `${timestamp}-${safe}`);
+  },
+});
+
+export const uploadImage = multer({
+  storage: imageStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error("Apenas PNG, JPG, JPEG e WEBP são permitidos"));
+    }
+    cb(null, true);
+  },
+});
+
 export default upload;

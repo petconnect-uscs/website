@@ -70,9 +70,9 @@ model doctor {
   updated_at   DateTime      @default(now()) @db.Timestamptz(6)
   deleted_at   DateTime?     @db.Timestamptz(6)
   appointment  appointment[]
-  recipe       recipe[]
   admin        admin?        @relation(fields: [admin_id], references: [admin_id], onUpdate: NoAction)
   specialty    specialty?    @relation(fields: [specialty_id], references: [specialty_id], onUpdate: NoAction)
+  recipe       recipe[]
 }
 
 model pet {
@@ -86,9 +86,13 @@ model pet {
   deleted_at    DateTime?     @db.Timestamptz(6)
   is_neutered   Boolean?      @default(false)
   is_vaccinated Boolean?      @default(false)
+  image_url     String?
+  sex           String?       @db.VarChar(50)
+  species_id    String?       @db.Uuid
   appointment   appointment[]
   breed         breed?        @relation(fields: [breed_id], references: [breed_id], onDelete: Cascade, onUpdate: NoAction)
   client        client?       @relation(fields: [client_cpf], references: [cpf], onDelete: Cascade, onUpdate: NoAction)
+  species       species?      @relation(fields: [species_id], references: [species_id], onDelete: Cascade, onUpdate: NoAction)
   pet_vaccine   pet_vaccine[]
   recipe        recipe[]
 }
@@ -99,15 +103,15 @@ model recipe {
   pet_id      String?   @db.Uuid
   client_cpf  String?   @db.VarChar(15)
   admin_id    String?   @db.Uuid
-  doctor_id   String?   @db.Uuid
   created_at  DateTime  @default(now()) @db.Timestamptz(6)
   updated_at  DateTime  @default(now()) @db.Timestamptz(6)
   deleted_at  DateTime? @db.Timestamptz(6)
   pdf_url     String?
+  doctor_id   String?   @db.Uuid
   admin       admin?    @relation(fields: [admin_id], references: [admin_id], onUpdate: NoAction)
   client      client?   @relation(fields: [client_cpf], references: [cpf], onDelete: Cascade, onUpdate: NoAction)
+  doctor      doctor?   @relation(fields: [doctor_id], references: [doctor_id], onUpdate: NoAction)
   pet         pet?      @relation(fields: [pet_id], references: [pet_id], onDelete: Cascade, onUpdate: NoAction)
-  doctor      doctor?   @relation(fields: [doctor_id], references: [doctor_id], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model specialty {
@@ -138,4 +142,12 @@ model vaccine {
   vaccine_id  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String        @unique @db.VarChar(100)
   pet_vaccine pet_vaccine[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model species {
+  species_id String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @unique
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  pet        pet[]
 }
