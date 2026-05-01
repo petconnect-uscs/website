@@ -14,13 +14,13 @@ import {
 
 const router = Router();
 
-// Rotas fixas ANTES de /:id para evitar conflito de parâmetro
+
 router.get("/breeds", listBreeds);
 router.get("/vaccines", listVaccines);
 router.get("/species", listSpecies);
 router.post("/upload", uploadImage.single("image"), uploadPetImage);
 
-// CRUD
+
 router.get("/", listPets);
 router.get("/:id", getPet);
 router.post("/", createPet);
