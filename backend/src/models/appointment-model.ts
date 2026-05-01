@@ -122,10 +122,17 @@ async function findBookedDatesByDoctor(doctorId: string): Promise<Date[]> {
   return rows.map((r) => r.appointment_date);
 }
 
+async function findDoctorAppointments(doctorId: string) {
+  return prisma.appointment.findMany({
+    where: { doctor_id: doctorId, deleted_at: null },
+  });
+}
+
 export {
   findAppointmentsByClientCpf,
   findPastAppointmentsByClientCpf,
   findAllAppointments,
   createAppointment,
   findBookedDatesByDoctor,
+  findDoctorAppointments
 };

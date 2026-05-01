@@ -184,6 +184,12 @@ async function deleteSpecialtyForAdmin(specialtyId: string) {
   if (!deleted) throw new AppError("Especialidade não encontrada", 404);
 }
 
+async function getDoctorAppointmentsForAdmin(doctorId: string) {
+  const appointments = await appointmentModel.findDoctorAppointments(doctorId);
+  if (!appointments) throw new AppError("Agendamentos não encontrados", 404);
+  return appointments;
+}
+
 async function getDoctorForAdmin(doctorId: string) {
   const doctor = await doctorModel.findDoctorById(doctorId);
   if (!doctor) throw new AppError("Doutor não encontrado", 404);
@@ -333,4 +339,5 @@ export {
   deleteDoctorForAdmin,
   createRecipeForAdmin,
   deleteRecipeForAdmin,
+  getDoctorAppointmentsForAdmin
 };

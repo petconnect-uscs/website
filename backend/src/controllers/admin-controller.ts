@@ -83,6 +83,11 @@ const getDoctor = asyncHandler(async (req) => {
   return adminService.getDoctorForAdmin(doctorId);
 });
 
+const getDoctorAppointments = asyncHandler(async (req) => {
+  const doctorId = req.params.doctorId as string;
+  return adminService.getDoctorAppointmentsForAdmin(doctorId);
+});
+
 const createDoctor = asyncHandler(
   async (req) =>
     adminService.createDoctorForAdmin(
@@ -151,4 +156,5 @@ export {
   createRecipe,
   deleteRecipe,
   uploadRecipePdf,
+  getDoctorAppointments
 };

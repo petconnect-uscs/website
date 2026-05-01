@@ -21,6 +21,7 @@ import {
   createRecipe,
   deleteRecipe,
   uploadRecipePdf,
+  getDoctorAppointments
 } from "@/controllers/admin-controller.ts";
 
 const router = express.Router();
@@ -44,5 +45,6 @@ router.get("/doctor/:doctorId", getDoctor);
 router.post("/doctor", createDoctor);
 router.put("/doctor/:doctorId", updateDoctor);
 router.delete("/doctor/:doctorId", deleteDoctor);
+router.get("/doctor/:doctorId/appointments", getDoctorAppointments);
 
 export default router;
