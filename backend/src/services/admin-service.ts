@@ -6,6 +6,7 @@ import * as appointmentModel from "@/models/appointment-model.ts";
 import * as recipeModel from "@/models/recipe-model.ts";
 import * as doctorModel from "@/models/doctor-model.ts";
 import * as specialtyModel from "@/models/specialty-model.ts";
+import * as breedModel from "@/models/breed-model.ts";
 import prisma from "@/prisma-client.ts";
 
 function isUniqueConstraintViolation(err: unknown): boolean {
@@ -321,6 +322,23 @@ async function deleteRecipeForAdmin(recipeId: number) {
   if (!deleted) throw new AppError("Receita não encontrada", 404);
 }
 
+async function listBreedsForAdmin() {
+  return breedModel.findAllBreeds();
+}
+
+async function createBreedForAdmin(body: { name?: string; description?: string | null }, adminId: string | undefined) {
+  if (!adminId) throw new AppError("Não autenticado", 401);
+  return breedModel.createBreed(body);
+}
+
+async function updateBreedForAdmin(breedId: string, body: { name?: string; description?: string | null }) {
+  return breedModel.updateBreed(breedId, body);
+}
+
+async function deleteBreedForAdmin(breedId: string) {
+  return breedModel.deleteBreed(breedId);
+}
+
 export {
   getAdminProfile,
   updateAdminProfile,
@@ -340,4 +358,8 @@ export {
   createRecipeForAdmin,
   deleteRecipeForAdmin,
   getDoctorAppointmentsForAdmin
+  listBreedsForAdmin,
+  createBreedForAdmin,
+  updateBreedForAdmin,
+  deleteBreedForAdmin,
 };

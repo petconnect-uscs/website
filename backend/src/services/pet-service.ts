@@ -14,7 +14,10 @@ async function listPetsByClient(cpf: string | undefined) {
   return petModel.findPetsByClientCpf(validCpf);
 }
 
-async function getPetByClient(petId: string | undefined, cpf: string | undefined) {
+async function getPetByClient(
+  petId: string | undefined,
+  cpf: string | undefined,
+) {
   const validCpf = requireCpf(cpf);
   if (!petId) throw new AppError("ID do pet não informado", 400);
 
@@ -51,6 +54,7 @@ async function updatePetForClient(
   body: Record<string, unknown>,
   cpf: string | undefined,
 ) {
+
   const validCpf = requireCpf(cpf);
   if (!petId) throw new AppError("ID do pet não informado", 400);
 
@@ -58,11 +62,20 @@ async function updatePetForClient(
   if (!existing) throw new AppError("Pet não encontrado", 404);
 
   const allowedFields = [
-    "name", "species_id", "sex", "birth_date", "image_url",
-    "is_neutered", "is_vaccinated", "breed_id", "vaccine_ids",
+    "name",
+    "species_id",
+    "sex",
+    "birth_date",
+    "image_url",
+    "is_neutered",
+    "is_vaccinated",
+    "breed_id",
+    "vaccine_ids",
   ];
+  
   const hasField = allowedFields.some((f) => body[f] !== undefined);
-  if (!hasField) throw new AppError("Nenhum campo válido fornecido para atualização", 400);
+  if (!hasField)
+    throw new AppError("Nenhum campo válido fornecido para atualização", 400);
 
   return petModel.updatePet(petId, {
     name: body.name as string | undefined,
@@ -77,7 +90,10 @@ async function updatePetForClient(
   });
 }
 
-async function deletePetForClient(petId: string | undefined, cpf: string | undefined) {
+async function deletePetForClient(
+  petId: string | undefined,
+  cpf: string | undefined,
+) {
   const validCpf = requireCpf(cpf);
   if (!petId) throw new AppError("ID do pet não informado", 400);
 

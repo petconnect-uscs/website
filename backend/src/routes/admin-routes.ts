@@ -21,7 +21,11 @@ import {
   createRecipe,
   deleteRecipe,
   uploadRecipePdf,
-  getDoctorAppointments
+  getDoctorAppointments,
+  getBreeds,
+  createBreed,
+  updateBreed,
+  deleteBreed,
 } from "@/controllers/admin-controller.ts";
 
 const router = express.Router();
@@ -46,5 +50,9 @@ router.post("/doctor", createDoctor);
 router.put("/doctor/:doctorId", updateDoctor);
 router.delete("/doctor/:doctorId", deleteDoctor);
 router.get("/doctor/:doctorId/appointments", getDoctorAppointments);
+router.get("/breeds", getBreeds);
+router.post("/breeds", createBreed);
+router.put("/breeds/:id", updateBreed);
+router.delete("/breeds/:id", deleteBreed);
 
 export default router;

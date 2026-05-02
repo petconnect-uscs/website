@@ -137,6 +137,26 @@ const deleteRecipe = asyncHandler(async (req) => {
   return { message: "Receita removida com sucesso" };
 });
 
+const getBreeds = asyncHandler(() => adminService.listBreedsForAdmin());
+
+const createBreed = asyncHandler(
+  (req) => adminService.createBreedForAdmin(req.body, req.user?.admin_id),
+  201
+);
+
+const updateBreed = asyncHandler(async (req) => {
+  const id = req.params.id as string;
+  if (!id) throw new AppError("ID inválido", 400);
+  return adminService.updateBreedForAdmin(id, req.body);
+});
+
+const deleteBreed = asyncHandler(async (req) => {
+  const id = req.params.id as string;
+  if (!id) throw new AppError("ID inválido", 400);
+  await adminService.deleteBreedForAdmin(id);
+  return { message: "Raça removida com sucesso" };
+});
+
 export {
   getProfile,
   updateProfile,
@@ -156,5 +176,9 @@ export {
   createRecipe,
   deleteRecipe,
   uploadRecipePdf,
-  getDoctorAppointments
+  getDoctorAppointments,
+  getBreeds,
+  createBreed,
+  updateBreed,
+  deleteBreed,
 };
