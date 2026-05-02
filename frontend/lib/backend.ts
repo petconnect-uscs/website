@@ -17,7 +17,11 @@ export function backend(path: string, options: BackendOptions = {}) {
 
 	if (token) finalHeaders.set("Authorization", `Bearer ${token}`);
 
-	if (body !== undefined && !finalHeaders.has("Content-Type")) {
+	if (
+		body !== undefined &&
+		!(body instanceof FormData) &&
+		!finalHeaders.has("Content-Type")
+	) {
 		finalHeaders.set("Content-Type", "application/json");
 	}
 

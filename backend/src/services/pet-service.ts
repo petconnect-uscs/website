@@ -35,9 +35,16 @@ async function createPetForClient(
   const name = (body.name as string | undefined)?.trim();
   if (!name) throw new AppError("O campo name é obrigatório", 400);
 
+  let species_id = body.species_id as string | undefined;
+  const species_name = (body.species_name as string | undefined)?.trim();
+  if (!species_id && species_name) {
+    const species = await speciesModel.findOrCreateSpeciesByName(species_name);
+    species_id = species.species_id;
+  }
+
   return petModel.createPet({
     name,
-    species_id: body.species_id as string | undefined,
+    species_id,
     sex: body.sex as string | undefined,
     birth_date: body.birth_date as string | undefined,
     image_url: body.image_url as string | undefined,

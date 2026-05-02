@@ -7,4 +7,17 @@ async function findAllSpecies() {
   });
 }
 
-export { findAllSpecies };
+async function findOrCreateSpeciesByName(name: string) {
+  const existing = await prisma.species.findUnique({
+    where: { name },
+    select: { species_id: true },
+  });
+  if (existing) return existing;
+
+  return prisma.species.create({
+    data: { name },
+    select: { species_id: true },
+  });
+}
+
+export { findAllSpecies, findOrCreateSpeciesByName };

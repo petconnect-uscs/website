@@ -123,7 +123,7 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 			}}
 		>
 			<SheetTrigger asChild>
-				<Button variant="outline" className="shrink-0">
+				<Button className="shrink-0">
 					<PlusIcon className="w-4 h-4" />
 					Agendar
 				</Button>
