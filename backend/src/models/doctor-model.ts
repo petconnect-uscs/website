@@ -106,6 +106,8 @@ async function findDoctorsBySpecialtyId(
   });
 }
 
+
+
 export {
   findAllDoctors,
   findDoctorById,

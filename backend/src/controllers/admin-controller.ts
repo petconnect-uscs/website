@@ -83,6 +83,11 @@ const getDoctor = asyncHandler(async (req) => {
   return adminService.getDoctorForAdmin(doctorId);
 });
 
+const getDoctorAppointments = asyncHandler(async (req) => {
+  const doctorId = req.params.doctorId as string;
+  return adminService.getDoctorAppointmentsForAdmin(doctorId);
+});
+
 const createDoctor = asyncHandler(
   async (req) =>
     adminService.createDoctorForAdmin(
@@ -150,7 +155,8 @@ const deleteBreed = asyncHandler(async (req) => {
   if (!id) throw new AppError("ID inválido", 400);
   await adminService.deleteBreedForAdmin(id);
   return { message: "Raça removida com sucesso" };
-}); 
+});
+
 export {
   getProfile,
   updateProfile,
@@ -170,6 +176,7 @@ export {
   createRecipe,
   deleteRecipe,
   uploadRecipePdf,
+  getDoctorAppointments,
   getBreeds,
   createBreed,
   updateBreed,
