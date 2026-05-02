@@ -22,7 +22,7 @@ function asyncHandler(
 const listPets = asyncHandler((req) => petService.listPetsByClient(req.user?.cpf));
 
 const getPet = asyncHandler((req) =>
-  petService.getPetByClient(req.params.id, req.user?.cpf),
+  petService.getPetByClient(req.params.id as string, req.user?.cpf),
 );
 
 const createPet = asyncHandler(
@@ -31,11 +31,11 @@ const createPet = asyncHandler(
 );
 
 const updatePet = asyncHandler((req) =>
-  petService.updatePetForClient(req.params.id, req.body as Record<string, unknown>, req.user?.cpf),
+  petService.updatePetForClient(req.params.id as string, req.body as Record<string, unknown>, req.user?.cpf),
 );
 
 const deletePet = asyncHandler(async (req) => {
-  await petService.deletePetForClient(req.params.id, req.user?.cpf);
+  await petService.deletePetForClient(req.params.id as string, req.user?.cpf);
   return { message: "Pet removido com sucesso" };
 });
 
