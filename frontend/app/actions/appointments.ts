@@ -4,6 +4,7 @@ import type { Agendamento } from "@/app/dashboard/agendamentos/columns";
 import { revalidatePath } from "next/cache";
 import { backend, readErrorMessage } from "@/lib/backend";
 import { verifySession } from "@/lib/dal";
+import { fetchPets, type Pet } from "@/app/actions/pets";
 
 type ApiAppointment = {
 	appointment_id: number;
@@ -35,6 +36,10 @@ export type AppointmentFormOptions = {
 	specialties: ApiSpecialtyOption[];
 	doctors: ApiDoctorOption[];
 };
+
+function toPetOption(pet: Pet): ApiPetOption {
+	return { pet_id: pet.pet_id, name: pet.name };
+}
 
 type CreateAppointmentInput = {
 	pet_id: string;
@@ -73,16 +78,13 @@ export async function fetchAppointments(): Promise<Agendamento[]> {
 export async function fetchAppointmentFormOptions(): Promise<AppointmentFormOptions> {
 	const { token } = await verifySession();
 
-	const [petsRes, specialtiesRes, doctorsRes] = await Promise.all([
-		backend("/client/pets", { token }),
+	const [pets, specialtiesRes, doctorsRes] = await Promise.all([
+		fetchPets(),
 		backend("/client/specialties", { token }),
 		backend("/client/doctors", { token }),
 	]);
 
-	const [pets, specialties, doctors] = await Promise.all([
-		petsRes.ok
-			? ((await petsRes.json()) as ApiPetOption[])
-			: Promise.resolve([] as ApiPetOption[]),
+	const [specialties, doctors] = await Promise.all([
 		specialtiesRes.ok
 			? ((await specialtiesRes.json()) as ApiSpecialtyOption[])
 			: Promise.resolve([] as ApiSpecialtyOption[]),
@@ -91,7 +93,7 @@ export async function fetchAppointmentFormOptions(): Promise<AppointmentFormOpti
 			: Promise.resolve([] as ApiDoctorOption[]),
 	]);
 
-	return { pets, specialties, doctors };
+	return { pets: pets.map(toPetOption), specialties, doctors };
 }
 
 export async function createAppointmentAction(input: CreateAppointmentInput) {

@@ -1,11 +1,16 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useTransition } from "react";
 
 import { ChevronDownIcon } from "lucide-react";
-
-import type { Pet, PetDisplay } from "@/types/pet";
-import { usePetProvider } from "@/context/pet-provider";
-
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+import {
+	createPetAction,
+	uploadPetImageAction,
+	type PetOptions,
+} from "@/app/actions/pets";
 import {
 	Dialog,
 	DialogContent,
@@ -33,107 +38,137 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { FileUpload } from "@/components/ui/file-upload";
+import { translateBreedName } from "@/lib/breed-translations";
 
 type CreateNewPetModalProps = {
 	closeModal: () => void;
 	isOpen: boolean;
+	options: PetOptions;
 };
 
-const initialFormData: Partial<Pet> = {
+type FormState = {
+	name: string;
+	species_name: string;
+	breed_id: string;
+	sex: string;
+	birth_date: Date | undefined;
+	image_file: File | undefined;
+	is_neutered: boolean | undefined;
+	is_vaccinated: boolean | undefined;
+	vaccine_ids: string[];
+};
+
+const initialFormData: FormState = {
 	name: "",
-	type: undefined,
-	breed: "",
-	sex: undefined,
-	birthDate: undefined,
-	image: undefined,
-	castrated: undefined,
-	vaccinated: undefined,
-	vaccines: [],
+	species_name: "",
+	breed_id: "",
+	sex: "",
+	birth_date: undefined,
+	image_file: undefined,
+	is_neutered: undefined,
+	is_vaccinated: undefined,
+	vaccine_ids: [],
 };
 
 export function CreateNewPetModal({
 	closeModal,
 	isOpen,
+	options,
 }: CreateNewPetModalProps) {
+	const router = useRouter();
 	const [activeStep, setActiveStep] = useState(0);
-	const [date, setDate] = useState<Date | undefined>(undefined);
-	const [open, setOpen] = useState(false);
-	const { addPet } = usePetProvider();
+	const [datePickerOpen, setDatePickerOpen] = useState(false);
+	const [formData, setFormData] = useState<FormState>(initialFormData);
+	const [isPending, startTransition] = useTransition();
 
-	const [formData, setFormData] = useState<Partial<Pet>>(initialFormData);
-
-	function handleInputChange<K extends keyof Pet>(
+	function handleInputChange<K extends keyof FormState>(
 		field: K,
-		value: Partial<Pet>[K],
+		value: FormState[K],
 	) {
-		setFormData((prev: Partial<Pet>) => ({ ...prev, [field]: value }));
+		setFormData((prev) => ({ ...prev, [field]: value }));
 	}
 
 	function handleVaccineChange(
-		vaccine: string,
+		vaccineId: string,
 		checked: boolean | "indeterminate",
 	) {
-		setFormData((prev: Partial<Pet>) => ({
+		setFormData((prev) => ({
 			...prev,
-			vaccines:
+			vaccine_ids:
 				checked === true
-					? [...(prev.vaccines ?? []), vaccine]
-					: (prev.vaccines ?? []).filter((v: string) => v !== vaccine),
+					? [...prev.vaccine_ids, vaccineId]
+					: prev.vaccine_ids.filter((id) => id !== vaccineId),
 		}));
 	}
 
-	function calculateAge(birthDate: Date | undefined) {
-		if (!birthDate) return "Idade não informada";
-
-		const today = new Date();
-		const birth = new Date(birthDate);
-		const diffTime = Math.abs(today.getTime() - birth.getTime());
-		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-		const years = Math.floor(diffDays / 365);
-		const months = Math.floor((diffDays % 365) / 30);
-
-		if (years > 0 && months > 0) {
-			return `${years} ano${years > 1 ? "s" : ""} e ${months} mês${
-				months > 1 ? "es" : ""
-			}`;
-		} else if (years > 0) {
-			return `${years} ano${years > 1 ? "s" : ""}`;
-		} else {
-			return `${months} mês${months > 1 ? "es" : ""}`;
-		}
+	function reset() {
+		setFormData(initialFormData);
+		setActiveStep(0);
 	}
 
 	function handleSubmit() {
 		if (activeStep === 0) {
 			setActiveStep(1);
+
 			return;
 		}
 
-		const newPet = {
-			name: formData.name,
-			age: calculateAge(formData.birthDate),
-			breed: formData.breed,
-			sex: formData.sex === "male" ? "Macho" : "Fêmea",
-			image: formData.image ?? "/src/img/pet1.png",
-			type: formData.type,
-			castrated: formData.castrated,
-			vaccinated: formData.vaccinated,
-			vaccines: formData.vaccines ?? [],
-		};
+		startTransition(async () => {
+			let imageUrl: string | undefined;
 
-		addPet(newPet as PetDisplay);
-		closeModal();
+			if (formData.image_file) {
+				const upload = new FormData();
 
-		setFormData(initialFormData);
+				upload.append("image", formData.image_file);
 
-		setActiveStep(0);
-		setDate(undefined);
+				const uploadResult = await uploadPetImageAction(upload);
 
-		toast.success("Pet cadastrado!");
+				if ("error" in uploadResult) {
+					toast.error(uploadResult.error ?? "Falha ao enviar a imagem.");
+
+					return;
+				}
+
+				imageUrl = uploadResult.image_url;
+			}
+
+			const result = await createPetAction({
+				name: formData.name.trim(),
+				species_name: formData.species_name || undefined,
+				breed_id: formData.breed_id || undefined,
+				sex: formData.sex || undefined,
+				birth_date: formData.birth_date?.toISOString(),
+				image_url: imageUrl,
+				is_neutered: formData.is_neutered,
+				is_vaccinated: formData.is_vaccinated,
+				vaccine_ids: formData.vaccine_ids.length
+					? formData.vaccine_ids
+					: undefined,
+			});
+
+			if ("error" in result) {
+				toast.error(result.error ?? "Falha ao cadastrar o pet.");
+
+				return;
+			}
+
+			toast.success("Pet cadastrado!");
+			reset();
+			closeModal();
+			router.refresh();
+		});
 	}
 
 	return (
-		<Dialog open={isOpen} onOpenChange={closeModal}>
+		<Dialog
+			open={isOpen}
+			onOpenChange={(nextOpen) => {
+				if (!nextOpen) {
+					reset();
+					closeModal();
+				}
+			}}
+		>
 			<DialogContent className="p-6">
 				<DialogHeader className="flex flex-col gap-2.5">
 					<DialogTitle>Cadastrar Pet</DialogTitle>
@@ -151,57 +186,52 @@ export function CreateNewPetModal({
 									placeholder="John Doe"
 									id="name"
 									className="h-8"
-									value={formData.name ?? ""}
+									value={formData.name}
 									onChange={(e) => handleInputChange("name", e.target.value)}
 								/>
 							</div>
 							<div className="flex flex-col gap-3">
-								<Label>Tipo</Label>
+								<Label>Espécie</Label>
 								<Select
-									value={formData.type ?? ""}
+									value={formData.species_name}
 									onValueChange={(value) =>
-										handleInputChange(
-											"type",
-											value === "cat" || value === "dog" ? value : undefined,
-										)
+										handleInputChange("species_name", value)
 									}
 								>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Selecionar" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="dog">Cachorro</SelectItem>
-										<SelectItem value="cat">Gato</SelectItem>
+										<SelectItem value="Cachorro">Cachorro</SelectItem>
+										<SelectItem value="Gato">Gato</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 							<div className="flex flex-col gap-3">
 								<Label>Raça</Label>
 								<Select
-									value={formData.breed ?? ""}
-									onValueChange={(value) => handleInputChange("breed", value)}
+									value={formData.breed_id}
+									onValueChange={(value) =>
+										handleInputChange("breed_id", value)
+									}
 								>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Selecionar" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="yorkshire">Yorkshire</SelectItem>
-										<SelectItem value="golden">Golden</SelectItem>
+										{options.breeds.map((b) => (
+											<SelectItem key={b.id} value={b.id}>
+												{translateBreedName(b.name)}
+											</SelectItem>
+										))}
 									</SelectContent>
 								</Select>
 							</div>
 							<div className="flex flex-col gap-3">
 								<Label>Sexo</Label>
 								<Select
-									value={formData.sex ?? ""}
-									onValueChange={(value) =>
-										handleInputChange(
-											"sex",
-											value === "male" || value === "female"
-												? value
-												: undefined,
-										)
-									}
+									value={formData.sex}
+									onValueChange={(value) => handleInputChange("sex", value)}
 								>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Selecionar" />
@@ -214,14 +244,16 @@ export function CreateNewPetModal({
 							</div>
 							<div className="flex flex-col gap-3">
 								<Label>Data de Nascimento</Label>
-								<Popover open={open} onOpenChange={setOpen}>
+								<Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
 									<PopoverTrigger asChild>
 										<Button
 											variant="outline"
 											id="date"
-											className="w-full justify-between font-normal text-sm text-muted-foreground pl-3! pr-2!"
+											className="w-full justify-between font-normal text-sm text-muted-foreground h-8! pl-3! pr-2!"
 										>
-											{date ? date.toLocaleDateString("pt-BR") : "Selecionar"}
+											{formData.birth_date
+												? formData.birth_date.toLocaleDateString("pt-BR")
+												: "Selecionar"}
 											<ChevronDownIcon className="size-5 opacity-50" />
 										</Button>
 									</PopoverTrigger>
@@ -231,12 +263,11 @@ export function CreateNewPetModal({
 									>
 										<Calendar
 											mode="single"
-											selected={date}
+											selected={formData.birth_date}
 											captionLayout="dropdown"
 											onSelect={(date) => {
-												setDate(date);
-												handleInputChange("birthDate", date);
-												setOpen(false);
+												handleInputChange("birth_date", date);
+												setDatePickerOpen(false);
 											}}
 										/>
 									</PopoverContent>
@@ -246,13 +277,9 @@ export function CreateNewPetModal({
 								<Label>Imagem do Pet</Label>
 								<FileUpload
 									multiple={false}
-									onFilesChange={(files) => {
-										const url =
-											files.length > 0
-												? URL.createObjectURL(files[0])
-												: undefined;
-										handleInputChange("image", url);
-									}}
+									onFilesChange={(files) =>
+										handleInputChange("image_file", files[0])
+									}
 								/>
 							</div>
 						</>
@@ -262,12 +289,12 @@ export function CreateNewPetModal({
 								<Label>Seu pet é castrado?</Label>
 								<RadioGroup
 									value={
-										formData.castrated === undefined
+										formData.is_neutered === undefined
 											? ""
-											: String(formData.castrated)
+											: String(formData.is_neutered)
 									}
 									onValueChange={(value) =>
-										handleInputChange("castrated", value === "true")
+										handleInputChange("is_neutered", value === "true")
 									}
 									className="flex gap-3"
 								>
@@ -289,12 +316,12 @@ export function CreateNewPetModal({
 								<Label>Seu pet é vacinado?</Label>
 								<RadioGroup
 									value={
-										formData.vaccinated === undefined
+										formData.is_vaccinated === undefined
 											? ""
-											: String(formData.vaccinated)
+											: String(formData.is_vaccinated)
 									}
 									onValueChange={(value) =>
-										handleInputChange("vaccinated", value === "true")
+										handleInputChange("is_vaccinated", value === "true")
 									}
 									className="flex gap-3"
 								>
@@ -312,80 +339,56 @@ export function CreateNewPetModal({
 									</div>
 								</RadioGroup>
 							</div>
-							<div className="flex flex-col gap-3 mt-2">
-								<Label>Marque as vacinas que seu pet tomou</Label>
-								<div className="flex items-center">
-									<Checkbox
-										id="v8-v10"
-										checked={(formData.vaccines ?? []).includes("v8-v10")}
-										onCheckedChange={(checked) =>
-											handleVaccineChange("v8-v10", checked)
-										}
-									/>
-									<Label
-										htmlFor="v8-v10"
-										className="text-muted-foreground pl-2"
-									>
-										Vacina Multiplas (V8 e V10)
-									</Label>
+							{formData.is_vaccinated && (
+								<div className="flex flex-col gap-3 mt-2">
+									<Label>Marque as vacinas que seu pet tomou</Label>
+									{options.vaccines.length === 0 ? (
+										<p className="text-sm text-muted-foreground">
+											Nenhuma vacina disponível.
+										</p>
+									) : (
+										options.vaccines.map((v) => (
+											<div key={v.id} className="flex items-center">
+												<Checkbox
+													id={`vaccine-${v.id}`}
+													checked={formData.vaccine_ids.includes(v.id)}
+													onCheckedChange={(checked) =>
+														handleVaccineChange(v.id, checked)
+													}
+												/>
+												<Label
+													htmlFor={`vaccine-${v.id}`}
+													className="text-muted-foreground pl-2"
+												>
+													{v.name}
+												</Label>
+											</div>
+										))
+									)}
 								</div>
-								<div className="flex items-center">
-									<Checkbox
-										id="antirabies"
-										checked={(formData.vaccines ?? []).includes("antirabies")}
-										onCheckedChange={(checked) =>
-											handleVaccineChange("antirabies", checked)
-										}
-									/>
-									<Label
-										htmlFor="antirabies"
-										className="text-muted-foreground pl-2"
-									>
-										Vacina Antirrãbica
-									</Label>
-								</div>
-								<div className="flex items-center">
-									<Checkbox
-										id="canine"
-										checked={(formData.vaccines ?? []).includes("canine")}
-										onCheckedChange={(checked) =>
-											handleVaccineChange("canine", checked)
-										}
-									/>
-									<Label
-										htmlFor="canine"
-										className="text-muted-foreground pl-2"
-									>
-										Vacina de Gripe Canina
-									</Label>
-								</div>
-								<div className="flex items-center">
-									<Checkbox
-										id="giardia"
-										checked={(formData.vaccines ?? []).includes("giardia")}
-										onCheckedChange={(checked) =>
-											handleVaccineChange("giardia", checked)
-										}
-									/>
-									<Label
-										htmlFor="giardia"
-										className="text-muted-foreground pl-2"
-									>
-										Vacina contra Giardia
-									</Label>
-								</div>
-							</div>
+							)}
 						</>
 					)}
 				</form>
 				<DialogFooter className="ml-auto">
 					{activeStep !== 0 && (
-						<Button variant="outline" onClick={() => setActiveStep(0)}>
+						<Button
+							variant="outline"
+							onClick={() => setActiveStep(0)}
+							disabled={isPending}
+						>
 							Voltar
 						</Button>
 					)}
-					<Button onClick={handleSubmit}>
-						{activeStep === 0 ? "Continuar" : "Cadastrar"}
+					<Button
+						onClick={handleSubmit}
+						disabled={isPending || (activeStep === 0 && !formData.name.trim())}
+					>
+						{activeStep === 0
+							? "Continuar"
+							: isPending
+								? "Cadastrando..."
+								: "Cadastrar"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
