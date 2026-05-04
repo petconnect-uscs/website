@@ -114,6 +114,10 @@ async function listBreeds() {
   return breedModel.findAllBreeds();
 }
 
+async function listBreedsBySpecies(speciesId: string) {
+  return breedModel.findBreedsBySpecies(speciesId);
+}
+
 async function listVaccines() {
   return vaccineModel.findAllVaccines();
 }
@@ -131,4 +135,5 @@ export {
   listBreeds,
   listVaccines,
   listSpecies,
+  listBreedsBySpecies
 };

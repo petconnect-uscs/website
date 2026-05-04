@@ -41,6 +41,8 @@ const deletePet = asyncHandler(async (req) => {
 
 const listBreeds = asyncHandler(() => petService.listBreeds());
 
+const listBreedsBySpecies = asyncHandler((req) => petService.listBreedsBySpecies(req.params.speciesId as string));
+
 const listVaccines = asyncHandler(() => petService.listVaccines());
 
 const listSpecies = asyncHandler(() => petService.listSpecies());
@@ -53,4 +55,4 @@ const uploadPetImage: RequestHandler = (req, res) => {
   return res.status(200).json({ image_url: imageUrl });
 };
 
-export { listPets, getPet, createPet, updatePet, deletePet, listBreeds, listVaccines, listSpecies, uploadPetImage };
+export { listPets, getPet, createPet, updatePet, deletePet, listBreeds, listVaccines, listSpecies, uploadPetImage, listBreedsBySpecies };

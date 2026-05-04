@@ -8,6 +8,14 @@ async function findAllBreeds() {
   });
 }
 
+async function findBreedsBySpecies(speciesId: string) {
+  return prisma.breed.findMany({
+    where: { deleted_at: null, species_id: speciesId },
+    select: { breed_id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+}
+
 async function createBreed(body: { name?: string; description?: string | null }) {
   return prisma.breed.create({
     data: { name: body.name ?? "", description: body.description ?? null },
@@ -27,4 +35,4 @@ async function deleteBreed(breedId: string) {
   });
 }
 
-export { findAllBreeds, createBreed, updateBreed, deleteBreed };
+export { findAllBreeds, createBreed, updateBreed, deleteBreed, findBreedsBySpecies };

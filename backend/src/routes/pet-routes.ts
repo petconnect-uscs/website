@@ -10,12 +10,14 @@ import {
   listVaccines,
   listSpecies,
   uploadPetImage,
+  listBreedsBySpecies
 } from "@/controllers/pet-controller.ts";
 
 const router = Router();
 
 
 router.get("/breeds", listBreeds);
+router.get("/breeds/:speciesId", listBreedsBySpecies);
 router.get("/vaccines", listVaccines);
 router.get("/species", listSpecies);
 router.post("/upload", uploadImage.single("image"), uploadPetImage);
