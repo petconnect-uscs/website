@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
-import banner from "@/assets/banner.png";
 import logo from "@/assets/logo.png";
 
 import { Button } from "@/components/ui/button";
@@ -17,14 +16,6 @@ export const metadata: Metadata = {
 export default function SenhaPage() {
 	return (
 		<main className="flex">
-			<Image
-				src={banner}
-				alt="banner"
-				width={1000}
-				height={1000}
-				className="h-screen border-r border-border"
-			/>
-
 			<div className="relative flex flex-col justify-center gap-12 mt-10 max-w-xl mx-auto w-full">
 				<div className="flex flex-col gap-4">
 					<Image
