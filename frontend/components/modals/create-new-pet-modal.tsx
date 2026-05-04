@@ -38,7 +38,16 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { FileUpload } from "@/components/ui/file-upload";
-import { translateBreedName } from "@/lib/breed-translations";
+import {
+	type BreedSpecies,
+	getBreedSpecies,
+	translateBreedName,
+} from "@/lib/breed-translations";
+
+const SPECIES_TO_BREED: Record<string, BreedSpecies> = {
+	Cachorro: "dog",
+	Gato: "cat",
+};
 
 type CreateNewPetModalProps = {
 	closeModal: () => void;
@@ -194,9 +203,10 @@ export function CreateNewPetModal({
 								<Label>Espécie</Label>
 								<Select
 									value={formData.species_name}
-									onValueChange={(value) =>
-										handleInputChange("species_name", value)
-									}
+									onValueChange={(value) => {
+										handleInputChange("species_name", value);
+										handleInputChange("breed_id", "");
+									}}
 								>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Selecionar" />
@@ -214,16 +224,29 @@ export function CreateNewPetModal({
 									onValueChange={(value) =>
 										handleInputChange("breed_id", value)
 									}
+									disabled={!formData.species_name}
 								>
 									<SelectTrigger className="w-full">
-										<SelectValue placeholder="Selecionar" />
+										<SelectValue
+											placeholder={
+												formData.species_name
+													? "Selecionar"
+													: "Selecione a espécie primeiro"
+											}
+										/>
 									</SelectTrigger>
 									<SelectContent>
-										{options.breeds.map((b) => (
-											<SelectItem key={b.id} value={b.id}>
-												{translateBreedName(b.name)}
-											</SelectItem>
-										))}
+										{options.breeds
+											.filter((b) => {
+												const target = SPECIES_TO_BREED[formData.species_name];
+												if (!target) return true;
+												return getBreedSpecies(b.name) === target;
+											})
+											.map((b) => (
+												<SelectItem key={b.id} value={b.id}>
+													{translateBreedName(b.name)}
+												</SelectItem>
+											))}
 									</SelectContent>
 								</Select>
 							</div>

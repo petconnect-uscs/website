@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { Link } from "next-view-transitions";
 
@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 
 export function Login() {
 	const [state, formAction, isPending] = useActionState(loginAction, undefined);
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 
 	useEffect(() => {
 		if (state?.error) toast.error(state.error);
@@ -33,6 +35,8 @@ export function Login() {
 						id="email"
 						name="email"
 						placeholder="seuemail@gmail.com"
+						value={email}
+						onChange={(event) => setEmail(event.target.value)}
 						required
 					/>
 				</div>
@@ -51,11 +55,16 @@ export function Login() {
 						id="senha"
 						name="password"
 						placeholder="••••••••••"
+						value={password}
+						onChange={(event) => setPassword(event.target.value)}
 						required
 					/>
 				</div>
 
-				<Button type="submit" disabled={isPending}>
+				<Button
+					type="submit"
+					disabled={isPending || !email.trim() || !password}
+				>
 					{isPending ? "Entrando..." : "Entrar"}
 				</Button>
 

@@ -1,5 +1,18 @@
-const BREED_TRANSLATIONS: Record<string, string> = {
-	// Dogs
+import type { StaticImageData } from "next/image";
+
+import beagle from "@/assets/dogs/beagle.png";
+import boxer from "@/assets/dogs/boxer.png";
+import buldogue from "@/assets/dogs/buldogue.png";
+import dachshund from "@/assets/dogs/dachshund.png";
+import golden from "@/assets/dogs/golden.png";
+import husky from "@/assets/dogs/husky.png";
+import labrador from "@/assets/dogs/labrador.png";
+import pastorAlemao from "@/assets/dogs/pastor-alemao.png";
+import poodle from "@/assets/dogs/poodle.png";
+import rottweiler from "@/assets/dogs/rottweiler.png";
+import yorkshire from "@/assets/dogs/yorkshire.png";
+
+const DOG_BREEDS: Record<string, string> = {
 	"labrador retriever": "Labrador Retriever",
 	"golden retriever": "Golden Retriever",
 	"german shepherd": "Pastor Alemão",
@@ -45,8 +58,9 @@ const BREED_TRANSLATIONS: Record<string, string> = {
 	mongrel: "Vira-lata",
 	mutt: "Vira-lata",
 	"mixed breed": "Vira-lata",
+};
 
-	// Cats
+const CAT_BREEDS: Record<string, string> = {
 	persian: "Persa",
 	siamese: "Siamês",
 	"maine coon": "Maine Coon",
@@ -74,6 +88,37 @@ const BREED_TRANSLATIONS: Record<string, string> = {
 	"selkirk rex": "Selkirk Rex",
 };
 
+const BREED_IMAGES: Record<string, StaticImageData> = {
+	"labrador retriever": labrador,
+	"golden retriever": golden,
+	"german shepherd": pastorAlemao,
+	bulldog: buldogue,
+	poodle,
+	beagle,
+	rottweiler,
+	"yorkshire terrier": yorkshire,
+	boxer,
+	dachshund,
+	"siberian husky": husky,
+};
+
+export type BreedSpecies = "dog" | "cat";
+
 export function translateBreedName(name: string): string {
-	return BREED_TRANSLATIONS[name.trim().toLowerCase()] ?? name;
+	const key = name.trim().toLowerCase();
+	return DOG_BREEDS[key] ?? CAT_BREEDS[key] ?? name;
+}
+
+export function getBreedImage(
+	name: string | null | undefined,
+): StaticImageData | null {
+	if (!name) return null;
+	return BREED_IMAGES[name.trim().toLowerCase()] ?? null;
+}
+
+export function getBreedSpecies(name: string): BreedSpecies | null {
+	const key = name.trim().toLowerCase();
+	if (key in DOG_BREEDS) return "dog";
+	if (key in CAT_BREEDS) return "cat";
+	return null;
 }

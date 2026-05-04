@@ -8,12 +8,13 @@ import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateNewPetModal } from "@/components/modals/create-new-pet-modal";
 import type { Pet, PetOptions } from "@/app/actions/pets";
-import { translateBreedName } from "@/lib/breed-translations";
+import { getBreedImage, translateBreedName } from "@/lib/breed-translations";
 
 function calculateAge(birthDate: string | null): string {
 	if (!birthDate) return "Idade não informada";
 
 	const birth = new Date(birthDate);
+
 	if (Number.isNaN(birth.getTime())) return "Idade não informada";
 
 	const diffDays = Math.ceil(
@@ -25,13 +26,16 @@ function calculateAge(birthDate: string | null): string {
 	if (years > 0 && months > 0) {
 		return `${years} ano${years > 1 ? "s" : ""} e ${months} ${months > 1 ? "meses" : "mês"}`;
 	}
+
 	if (years > 0) return `${years} ano${years > 1 ? "s" : ""}`;
+
 	return `${months} mês${months > 1 ? "es" : ""}`;
 }
 
 function formatSex(sex: string | null): string {
 	if (sex === "male") return "Macho";
 	if (sex === "female") return "Fêmea";
+
 	return sex ?? "—";
 }
 
@@ -68,7 +72,11 @@ export function PetsView({
 									className="flex flex-col rounded-[10px] border"
 								>
 									<Image
-										src={pet.image_url ?? "/src/img/pet1.png"}
+										src={
+											pet.image_url ??
+											getBreedImage(pet.breed_name) ??
+											"/src/img/pet1.png"
+										}
 										width={170}
 										height={170}
 										className="w-full h-[170px] object-cover rounded-t-lg rounded-b-none"
@@ -96,7 +104,9 @@ export function PetsView({
 												Raça
 											</span>
 											<p className="font-semibold text-sm text-foreground capitalize">
-												{pet.breed_name ? translateBreedName(pet.breed_name) : "—"}
+												{pet.breed_name
+													? translateBreedName(pet.breed_name)
+													: "—"}
 											</p>
 										</div>
 										<div className="flex flex-col">

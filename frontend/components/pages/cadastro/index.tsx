@@ -37,6 +37,10 @@ export function Cadastro() {
 	);
 	const [termsOpen, setTermsOpen] = useState(false);
 	const [acceptedTerms, setAcceptedTerms] = useState(false);
+	const [name, setName] = useState("");
+	const [cpf, setCpf] = useState("");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
 
 	useEffect(() => {
 		if (state?.error) toast.error(state.error);
@@ -52,6 +56,8 @@ export function Cadastro() {
 						id="nome"
 						name="name"
 						placeholder="John Doe"
+						value={name}
+						onChange={(event) => setName(event.target.value)}
 						required
 					/>
 				</div>
@@ -66,9 +72,8 @@ export function Cadastro() {
 						maxLength={14}
 						pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
 						title="Digite um CPF no formato 000.000.000-00"
-						onInput={(event) => {
-							event.currentTarget.value = formatCpf(event.currentTarget.value);
-						}}
+						value={cpf}
+						onChange={(event) => setCpf(formatCpf(event.target.value))}
 						required
 					/>
 				</div>
@@ -79,6 +84,8 @@ export function Cadastro() {
 						id="email"
 						name="email"
 						placeholder="johndoe@gmail.com"
+						value={email}
+						onChange={(event) => setEmail(event.target.value)}
 						required
 					/>
 				</div>
@@ -88,6 +95,8 @@ export function Cadastro() {
 						id="senha"
 						name="password"
 						placeholder="••••••••••"
+						value={password}
+						onChange={(event) => setPassword(event.target.value)}
 						required
 					/>
 				</div>
@@ -112,7 +121,17 @@ export function Cadastro() {
 						</span>
 					</div>
 				</div>
-				<Button type="submit" disabled={isPending}>
+				<Button
+					type="submit"
+					disabled={
+						isPending ||
+						!name.trim() ||
+						!cpf.trim() ||
+						!email.trim() ||
+						!password ||
+						!acceptedTerms
+					}
+				>
 					{isPending ? "Cadastrando..." : "Cadastrar"}
 				</Button>
 

@@ -9,12 +9,33 @@ type AuthFormState = { error?: string } | undefined;
 
 type TokenResponse = { token: string };
 
+type AuthAction = "fazer login" | "criar a conta";
+
+function defaultAuthError(status: number, action: AuthAction): string {
+	if (status >= 500) {
+		return "Erro no servidor. Tente novamente em alguns minutos.";
+	}
+	if (status === 429) {
+		return "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.";
+	}
+	if (status === 408 || status === 504) {
+		return "Tempo limite excedido. Verifique sua conexão e tente novamente.";
+	}
+	return `Não foi possível ${action}. Verifique os dados e tente novamente.`;
+}
+
 async function consumeAuthResponse(
 	res: Response,
-	fallbackError: string,
+	action: AuthAction,
 ): Promise<AuthFormState> {
 	if (!res.ok) {
-		return { error: await readErrorMessage(res, fallbackError) };
+		const backendMessage = await readErrorMessage(res, "");
+
+		if (backendMessage) {
+			return { error: `Não foi possível ${action}: ${backendMessage}` };
+		}
+
+		return { error: defaultAuthError(res.status, action) };
 	}
 
 	const data = (await res
@@ -52,7 +73,7 @@ export async function loginAction(
 		return { error: "Não foi possível conectar ao servidor." };
 	}
 
-	const failure = await consumeAuthResponse(res, "Falha ao fazer login.");
+	const failure = await consumeAuthResponse(res, "fazer login");
 
 	if (failure) return failure;
 
@@ -87,7 +108,7 @@ export async function signupAction(
 		return { error: "Não foi possível conectar ao servidor." };
 	}
 
-	const failure = await consumeAuthResponse(res, "Falha ao criar a conta.");
+	const failure = await consumeAuthResponse(res, "criar a conta");
 
 	if (failure) return failure;
 
