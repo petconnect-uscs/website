@@ -3,8 +3,6 @@ import {
 	fetchAppointments,
 } from "@/app/actions/appointments";
 import { AppointmentSheet } from "@/components/ui/appointment-sheet";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
 
 import { columns } from "./columns";
 import { DataTable } from "./data-table";

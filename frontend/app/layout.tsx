@@ -21,6 +21,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: "Pet Connect",
 	description: "O melhor jeito de administrar sua clínica.",
+	icons: {
+		icon: "/favicon.png",
+	},
 };
 
 export default function RootLayout({

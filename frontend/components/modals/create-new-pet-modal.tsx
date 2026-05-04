@@ -179,11 +179,10 @@ export function CreateNewPetModal({
 			}}
 		>
 			<DialogContent className="p-6">
-				<DialogHeader className="flex flex-col gap-2.5">
+				<DialogHeader>
 					<DialogTitle>Cadastrar Pet</DialogTitle>
 					<DialogDescription className="max-w-sm">
-						Insira os dados para cadastrar seu pet. Clique em salvar quando
-						terminar.
+						Insira os dados para cadastrar seu pet
 					</DialogDescription>
 				</DialogHeader>
 				<form className="my-2 flex flex-col gap-4">

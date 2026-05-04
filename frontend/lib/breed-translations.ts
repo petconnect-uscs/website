@@ -11,6 +11,10 @@ import pastorAlemao from "@/assets/dogs/pastor-alemao.png";
 import poodle from "@/assets/dogs/poodle.png";
 import rottweiler from "@/assets/dogs/rottweiler.png";
 import yorkshire from "@/assets/dogs/yorkshire.png";
+import bengal from "@/assets/cats/bengal.png";
+import maineCoon from "@/assets/cats/maniecoon.png";
+import ragdoll from "@/assets/cats/ragdoll.png";
+import sphynx from "@/assets/cats/sphynx.png";
 
 const DOG_BREEDS: Record<string, string> = {
 	"labrador retriever": "Labrador Retriever",
@@ -100,6 +104,10 @@ const BREED_IMAGES: Record<string, StaticImageData> = {
 	boxer,
 	dachshund,
 	"siberian husky": husky,
+	bengal,
+	"maine coon": maineCoon,
+	ragdoll,
+	sphynx,
 };
 
 export type BreedSpecies = "dog" | "cat";

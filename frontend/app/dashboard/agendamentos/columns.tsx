@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Status } from "@/components/ui/status";
+import { translateSpecialtyName } from "@/lib/specialty-translations";
 
 export type Agendamento = {
   id: string;
@@ -56,6 +57,7 @@ export const columns: ColumnDef<Agendamento>[] = [
   {
     accessorKey: "especialidade",
     header: "Especialidade",
+    cell: ({ row }) => translateSpecialtyName(row.getValue("especialidade")),
   },
   {
     accessorKey: "profissional",

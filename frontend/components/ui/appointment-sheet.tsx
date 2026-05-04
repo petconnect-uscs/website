@@ -8,6 +8,7 @@ import {
 	createAppointmentAction,
 	type AppointmentFormOptions,
 } from "@/app/actions/appointments";
+import { translateSpecialtyName } from "@/lib/specialty-translations";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -167,7 +168,7 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 										key={specialty.specialty_id}
 										value={specialty.specialty_id}
 									>
-										{specialty.name}
+										{translateSpecialtyName(specialty.name)}
 									</SelectItem>
 								))}
 							</SelectContent>
