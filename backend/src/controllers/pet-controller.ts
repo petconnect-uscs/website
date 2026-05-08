@@ -25,6 +25,10 @@ const getPet = asyncHandler((req) =>
   petService.getPetByClient(req.params.id as string, req.user?.cpf),
 );
 
+const listPetVaccines = asyncHandler((req) =>
+  petService.listPetVaccinesByClient(req.params.id as string, req.user?.cpf),
+);
+
 const createPet = asyncHandler(
   (req) => petService.createPetForClient(req.body as Record<string, unknown>, req.user?.cpf),
   201,
@@ -55,4 +59,4 @@ const uploadPetImage: RequestHandler = (req, res) => {
   return res.status(200).json({ image_url: imageUrl });
 };
 
-export { listPets, getPet, createPet, updatePet, deletePet, listBreeds, listVaccines, listSpecies, uploadPetImage, listBreedsBySpecies };
+export { listPets, getPet, listPetVaccines, createPet, updatePet, deletePet, listBreeds, listVaccines, listSpecies, uploadPetImage, listBreedsBySpecies };
