@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { backend, readErrorMessage } from "@/lib/backend";
 import { createSession, deleteSession } from "@/lib/session";
+import type { AuthUser } from "@/lib/types";
 
 type AuthFormState = { error?: string } | undefined;
 
@@ -27,15 +28,15 @@ function defaultAuthError(status: number, action: AuthAction): string {
 async function consumeAuthResponse(
 	res: Response,
 	action: AuthAction,
-): Promise<AuthFormState> {
+): Promise<{ failure?: AuthFormState; token?: string }> {
 	if (!res.ok) {
 		const backendMessage = await readErrorMessage(res, "");
 
 		if (backendMessage) {
-			return { error: `Não foi possível ${action}: ${backendMessage}` };
+			return { failure: { error: `Não foi possível ${action}: ${backendMessage}` } };
 		}
 
-		return { error: defaultAuthError(res.status, action) };
+		return { failure: { error: defaultAuthError(res.status, action) } };
 	}
 
 	const data = (await res
@@ -43,12 +44,26 @@ async function consumeAuthResponse(
 		.catch(() => null)) as Partial<TokenResponse> | null;
 
 	if (!data || typeof data.token !== "string") {
-		return { error: "Resposta inválida do servidor." };
+		return { failure: { error: "Resposta inválida do servidor." } };
 	}
 
 	await createSession(data.token);
 
-	return undefined;
+	return { token: data.token };
+}
+
+async function resolveRedirectPathForToken(token: string): Promise<string> {
+	const res = await backend("/auth/me", { token });
+	if (!res.ok) return "/dashboard";
+
+	const user = (await res.json().catch(() => null)) as AuthUser | null;
+	if (!user || typeof user !== "object") return "/dashboard";
+
+	if ("admin_id" in user && typeof user.admin_id === "string" && user.admin_id) {
+		return "/dashboardAdmin";
+	}
+
+	return "/dashboard";
 }
 
 export async function loginAction(
@@ -73,11 +88,13 @@ export async function loginAction(
 		return { error: "Não foi possível conectar ao servidor." };
 	}
 
-	const failure = await consumeAuthResponse(res, "fazer login");
+	const { failure, token } = await consumeAuthResponse(res, "fazer login");
 
 	if (failure) return failure;
 
-	redirect("/dashboard");
+	const redirectPath = token ? await resolveRedirectPathForToken(token) : "/dashboard";
+
+	redirect(redirectPath);
 }
 
 export async function signupAction(
@@ -108,7 +125,7 @@ export async function signupAction(
 		return { error: "Não foi possível conectar ao servidor." };
 	}
 
-	const failure = await consumeAuthResponse(res, "criar a conta");
+	const { failure } = await consumeAuthResponse(res, "criar a conta");
 
 	if (failure) return failure;
 
