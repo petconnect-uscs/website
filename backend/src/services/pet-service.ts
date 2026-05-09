@@ -26,6 +26,14 @@ async function getPetByClient(
   return pet;
 }
 
+async function listPetVaccinesByClient(
+  petId: string | undefined,
+  cpf: string | undefined,
+) {
+  const pet = await getPetByClient(petId, cpf);
+  return pet.vaccines;
+}
+
 async function createPetForClient(
   body: Record<string, unknown>,
   cpf: string | undefined,
@@ -129,6 +137,7 @@ async function listSpecies() {
 export {
   listPetsByClient,
   getPetByClient,
+  listPetVaccinesByClient,
   createPetForClient,
   updatePetForClient,
   deletePetForClient,

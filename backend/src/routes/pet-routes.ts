@@ -3,6 +3,7 @@ import { uploadImage } from "@/middleware/upload.ts";
 import {
   listPets,
   getPet,
+  listPetVaccines,
   createPet,
   updatePet,
   deletePet,
@@ -25,6 +26,7 @@ router.post("/upload", uploadImage.single("image"), uploadPetImage);
 
 router.get("/", listPets);
 router.get("/:id", getPet);
+router.get("/:id/vaccines", listPetVaccines);
 router.post("/", createPet);
 router.put("/:id", updatePet);
 router.delete("/:id", deletePet);
