@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 
 import { backend, readErrorMessage } from "@/lib/backend";
 import { createSession, deleteSession } from "@/lib/session";
-import type { AuthUser } from "@/lib/types";
 
 type AuthFormState = { error?: string } | undefined;
 
@@ -52,20 +51,6 @@ async function consumeAuthResponse(
 	return { token: data.token };
 }
 
-async function resolveRedirectPathForToken(token: string): Promise<string> {
-	const res = await backend("/auth/me", { token });
-	if (!res.ok) return "/dashboard";
-
-	const user = (await res.json().catch(() => null)) as AuthUser | null;
-	if (!user || typeof user !== "object") return "/dashboard";
-
-	if ("admin_id" in user && typeof user.admin_id === "string" && user.admin_id) {
-		return "/dashboardAdmin";
-	}
-
-	return "/dashboard";
-}
-
 export async function loginAction(
 	_prev: AuthFormState,
 	formData: FormData,
@@ -88,13 +73,11 @@ export async function loginAction(
 		return { error: "Não foi possível conectar ao servidor." };
 	}
 
-	const { failure, token } = await consumeAuthResponse(res, "fazer login");
+	const { failure } = await consumeAuthResponse(res, "fazer login");
 
 	if (failure) return failure;
 
-	const redirectPath = token ? await resolveRedirectPathForToken(token) : "/dashboard";
-
-	redirect(redirectPath);
+	redirect("/dashboard");
 }
 
 export async function signupAction(

@@ -2,11 +2,15 @@
 
 import { useMemo, useState } from "react";
 
-import { AnimatePresence, motion } from "motion/react";
-
 import type { AdminAppointment } from "@/app/actions/admin-appointments";
 import type { AdminDoctor } from "@/app/actions/admin-doctors";
-import { Button } from "@/components/ui/button";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import {
 	Table,
 	TableBody,
@@ -16,7 +20,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { XIcon } from "lucide-react";
+import { translateSpecialtyName } from "@/lib/specialty-translations";
 
 type Props = {
 	doctors: AdminDoctor[];
@@ -58,7 +62,8 @@ export function HomeDoctorsTable({ doctors, appointments }: Props) {
 				)
 				.sort(
 					(a, b) =>
-						new Date(b.dateTimeIso).getTime() - new Date(a.dateTimeIso).getTime(),
+						new Date(b.dateTimeIso).getTime() -
+						new Date(a.dateTimeIso).getTime(),
 				);
 
 			const last = concludedForDoctor[0];
@@ -90,47 +95,53 @@ export function HomeDoctorsTable({ doctors, appointments }: Props) {
 
 	const activeDoctorName = useMemo(() => {
 		if (!activeDoctorId) return "Doutor";
-		return doctors.find((d) => d.doctor_id === activeDoctorId)?.name || "Doutor";
+		return (
+			doctors.find((d) => d.doctor_id === activeDoctorId)?.name || "Doutor"
+		);
 	}, [activeDoctorId, doctors]);
 
 	return (
 		<div className="space-y-4">
-			<div className="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-				<Table className="table-fixed">
+			<div className="overflow-hidden rounded-md border bg-background">
+				<Table>
 					<TableHeader>
-						<TableRow className="bg-neutral-100/70 hover:bg-neutral-100/70">
+						<TableRow>
 							<TableHead className="px-4">Doutor</TableHead>
-							<TableHead className="px-4">Especialidade</TableHead>
-							<TableHead className="px-4">Paciente</TableHead>
-							<TableHead className="px-4">Dono do pet</TableHead>
-							<TableHead className="w-[150px] px-4 text-center">Agenda</TableHead>
+							<TableHead>Especialidade</TableHead>
+							<TableHead>Paciente</TableHead>
+							<TableHead>Dono do pet</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
 						{doctorRows.length > 0 ? (
-							doctorRows.map((row) => (
-								<TableRow
-									key={row.doctorId}
-									className="transition-colors hover:bg-neutral-100/35"
-								>
-									<TableCell className="px-4 font-medium">{row.doctorName}</TableCell>
-									<TableCell className="px-4">{row.specialtyName}</TableCell>
-									<TableCell className="px-4">{row.lastPetName}</TableCell>
-									<TableCell className="px-4">{row.lastOwnerName}</TableCell>
-									<TableCell className="w-[150px] px-4">
-										<div className="flex justify-center">
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
-												onClick={() => setActiveDoctorId(row.doctorId)}
-											>
-												Visualizar
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							))
+							doctorRows.map((row) => {
+								const active = activeDoctorId === row.doctorId;
+								return (
+									<TableRow
+										key={row.doctorId}
+										onClick={() => setActiveDoctorId(row.doctorId)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ") {
+												e.preventDefault();
+												setActiveDoctorId(row.doctorId);
+											}
+										}}
+										tabIndex={0}
+										role="button"
+										className={cn(
+											"cursor-pointer hover:bg-neutral-50/80",
+											active && "bg-neutral-50/70",
+										)}
+									>
+										<TableCell className="px-4">{row.doctorName}</TableCell>
+										<TableCell>
+											{translateSpecialtyName(row.specialtyName)}
+										</TableCell>
+										<TableCell>{row.lastPetName}</TableCell>
+										<TableCell>{row.lastOwnerName}</TableCell>
+									</TableRow>
+								);
+							})
 						) : (
 							<TableRow>
 								<TableCell colSpan={5} className="h-24 text-center">
@@ -142,81 +153,71 @@ export function HomeDoctorsTable({ doctors, appointments }: Props) {
 				</Table>
 			</div>
 
-			<AnimatePresence>
-				{activeDoctorId && (
-					<>
-						<motion.button
-							type="button"
-							aria-label="Fechar agenda"
-							className="fixed inset-0 z-40 bg-black/30"
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							onClick={() => setActiveDoctorId(null)}
-						/>
-						<motion.aside
-							className={cn(
-								"fixed right-0 top-0 z-50 h-dvh w-full sm:w-[430px]",
-								"border-l border-neutral-200 bg-white shadow-xl",
-								"flex flex-col",
-							)}
-							initial={{ x: 430, opacity: 0.95 }}
-							animate={{ x: 0, opacity: 1 }}
-							exit={{ x: 430, opacity: 0.95 }}
-							transition={{ type: "spring", stiffness: 380, damping: 34 }}
-						>
-							<div className="px-5 py-4 border-b border-neutral-200 flex items-start justify-between gap-4">
-								<div>
-									<p className="text-xs font-semibold uppercase tracking-wide text-[#F97316]">
-										Agenda
-									</p>
-									<h2 className="text-lg font-semibold text-foreground leading-tight">
-										Próximos agendamentos
-									</h2>
-									<p className="text-sm text-muted-foreground mt-0.5">
-										Doutor: {activeDoctorName}
-									</p>
-								</div>
-								<Button
-									type="button"
-									variant="ghost"
-									size="icon"
-									className="rounded-full"
-									onClick={() => setActiveDoctorId(null)}
-								>
-									<XIcon className="size-4" />
-								</Button>
-							</div>
+			<Sheet
+				open={Boolean(activeDoctorId)}
+				onOpenChange={(open) => {
+					if (!open) setActiveDoctorId(null);
+				}}
+			>
+				<SheetContent>
+					<SheetHeader>
+						<SheetTitle className="truncate">{activeDoctorName}</SheetTitle>
+						<SheetDescription>Próximos agendamentos</SheetDescription>
+					</SheetHeader>
 
-							<div className="p-5 overflow-y-auto">
-								{upcomingForDoctor.length > 0 ? (
-									<ul className="grid gap-2">
-										{upcomingForDoctor.map((a) => (
-											<li
-												key={a.id}
-												className="rounded-lg border border-neutral-200 bg-white px-3.5 py-3 text-sm shadow-sm"
-											>
-												<p className="font-medium text-foreground">{a.petName}</p>
-												<p className="text-xs text-muted-foreground mt-1">
-													{a.specialtyName} · Tutor: {a.ownerName}
-												</p>
-												<p className="text-xs text-muted-foreground mt-0.5">
-													{formatDateTimeBr(a.dateTimeIso)}
-												</p>
-											</li>
-										))}
-									</ul>
-								) : (
-									<p className="text-sm text-muted-foreground">
-										Não há próximos agendamentos para este doutor.
-									</p>
-								)}
-							</div>
-						</motion.aside>
-					</>
-				)}
-			</AnimatePresence>
+					<div className="flex flex-col gap-2 px-4 pt-2">
+						<h1 className="text-lg font-semibold text-foreground tracking-tight flex items-baseline gap-1">
+							Agenda
+							{upcomingForDoctor.length > 0 && (
+								<sup className="text-xs font-semibold text-primary">
+									({upcomingForDoctor.length})
+								</sup>
+							)}
+						</h1>
+
+						{upcomingForDoctor.length === 0 ? (
+							<p className="text-sm text-muted-foreground">
+								Não há próximos agendamentos para este doutor.
+							</p>
+						) : (
+							<ul className="grid gap-2">
+								{upcomingForDoctor.map((a) => (
+									<li
+										key={a.id}
+										className="flex flex-col gap-3 rounded-lg border border-border bg-white px-3.5 py-3"
+									>
+										<h3 className="font-semibold text-foreground">
+											{a.petName}
+										</h3>
+										<div className="flex flex-col">
+											<p className="text-sm text-muted-foreground">
+												Especialidade
+											</p>
+											<p className="text-sm text-foreground font-medium">
+												{translateSpecialtyName(a.specialtyName)}
+											</p>
+										</div>
+										<div className="flex flex-col">
+											<p className="text-sm text-muted-foreground">Paciente</p>
+											<p className="text-sm text-foreground font-medium">
+												{a.ownerName}
+											</p>
+										</div>
+										<div className="flex flex-col">
+											<p className="text-sm text-muted-foreground">
+												Data e Hora
+											</p>
+											<p className="text-sm text-foreground font-medium">
+												{formatDateTimeBr(a.dateTimeIso)}
+											</p>
+										</div>
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+				</SheetContent>
+			</Sheet>
 		</div>
 	);
 }
-

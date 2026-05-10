@@ -2,15 +2,30 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { PlusIcon } from "lucide-react";
+import {
+	CheckIcon,
+	ChevronsUpDownIcon,
+	PlusIcon,
+	SearchIcon,
+} from "lucide-react";
 
+import {
+	createAdminAppointmentAction,
+	type AdminAppointmentFormOptions,
+} from "@/app/actions/admin-appointments";
 import {
 	createAppointmentAction,
 	type AppointmentFormOptions,
 } from "@/app/actions/appointments";
 import { translateSpecialtyName } from "@/lib/specialty-translations";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import {
 	Sheet,
 	SheetClose,
@@ -31,9 +46,9 @@ import {
 import { Calendar } from "./calendar";
 import { ScrollArea } from "./scroll-area";
 
-type AppointmentSheetProps = {
-	options?: AppointmentFormOptions;
-};
+type AppointmentSheetProps =
+	| { mode?: "client"; options?: AppointmentFormOptions }
+	| { mode: "admin"; options: AdminAppointmentFormOptions };
 
 const SLOT_TIMES = Array.from(
 	{ length: 24 },
@@ -53,15 +68,24 @@ function buildAppointmentDate(date: Date | null, time: string): string | null {
 	return merged.toISOString();
 }
 
-export function AppointmentSheet({ options }: AppointmentSheetProps) {
-	const safeOptions: AppointmentFormOptions = options ?? {
-		pets: [],
-		specialties: [],
-		doctors: [],
-	};
+export function AppointmentSheet(props: AppointmentSheetProps) {
+	const isAdmin = props.mode === "admin";
+
+	const clientOptions: AppointmentFormOptions = isAdmin
+		? { pets: [], specialties: [], doctors: [] }
+		: (props.options ?? { pets: [], specialties: [], doctors: [] });
+
+	const adminOptions: AdminAppointmentFormOptions = isAdmin
+		? props.options
+		: { clients: [], specialties: [], doctors: [] };
 
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
+
+	const [clientCpf, setClientCpf] = useState("");
+	const [clientSearch, setClientSearch] = useState("");
+	const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
+
 	const [petId, setPetId] = useState("");
 	const [specialtyId, setSpecialtyId] = useState("");
 	const [doctorId, setDoctorId] = useState("");
@@ -70,14 +94,49 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
 
+	const activeClient = useMemo(() => {
+		if (!isAdmin) return null;
+		return adminOptions.clients.find((c) => c.cpf === clientCpf) ?? null;
+	}, [adminOptions.clients, clientCpf, isAdmin]);
+
+	const filteredClients = useMemo(() => {
+		if (!isAdmin) return [];
+		if (!clientSearch) return adminOptions.clients;
+		const q = clientSearch.toLowerCase();
+		return adminOptions.clients.filter(
+			(c) => c.name.toLowerCase().includes(q) || c.cpf.includes(q),
+		);
+	}, [adminOptions.clients, clientSearch, isAdmin]);
+
 	const doctorOptions = useMemo(() => {
-		if (!specialtyId) return safeOptions.doctors;
-		return safeOptions.doctors.filter(
+		if (isAdmin) {
+			if (!specialtyId) return adminOptions.doctors;
+			const specialtyName = adminOptions.specialties.find(
+				(s) => s.specialty_id === specialtyId,
+			)?.name;
+			return adminOptions.doctors.filter(
+				(doctor) => doctor.specialty_name === specialtyName,
+			);
+		}
+		if (!specialtyId) return clientOptions.doctors;
+		return clientOptions.doctors.filter(
 			(doctor) => doctor.specialty_id === specialtyId,
 		);
-	}, [safeOptions.doctors, specialtyId]);
+	}, [
+		adminOptions.doctors,
+		adminOptions.specialties,
+		clientOptions.doctors,
+		isAdmin,
+		specialtyId,
+	]);
+
+	const specialties = isAdmin
+		? adminOptions.specialties
+		: clientOptions.specialties;
 
 	function resetForm() {
+		setClientCpf("");
+		setClientSearch("");
 		setPetId("");
 		setSpecialtyId("");
 		setDoctorId("");
@@ -90,6 +149,41 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 		setError(null);
 
 		const appointmentDate = buildAppointmentDate(selectedDate, selectedTime);
+
+		if (isAdmin) {
+			if (
+				!clientCpf ||
+				!petId ||
+				!specialtyId ||
+				!doctorId ||
+				!appointmentDate
+			) {
+				setError(
+					"Preencha tutor, pet, especialidade, doutor(a), data e horário.",
+				);
+				return;
+			}
+
+			startTransition(async () => {
+				const result = await createAdminAppointmentAction({
+					client_cpf: clientCpf,
+					pet_id: petId,
+					specialty_id: specialtyId,
+					doctor_id: doctorId,
+					appointment_date: appointmentDate,
+				});
+
+				if ("error" in result) {
+					setError(result.error ?? "Falha ao criar o agendamento.");
+					return;
+				}
+
+				resetForm();
+				setOpen(false);
+				router.refresh();
+			});
+			return;
+		}
 
 		if (!petId || !specialtyId || !doctorId || !appointmentDate) {
 			setError("Preencha pet, especialidade, doutor(a), data e horario.");
@@ -126,30 +220,134 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 			<SheetTrigger asChild>
 				<Button className="shrink-0">
 					<PlusIcon className="w-4 h-4" />
-					Agendar
+					Novo
 				</Button>
 			</SheetTrigger>
-			<SheetContent>
+			<SheetContent className={cn(isAdmin && "overflow-y-auto")}>
 				<SheetHeader>
 					<SheetTitle>Agendar consulta</SheetTitle>
 					<SheetDescription>Preencha os campos abaixo.</SheetDescription>
 				</SheetHeader>
 				<div className="grid flex-1 auto-rows-min gap-4 px-4">
+					{isAdmin ? (
+						<div className="flex flex-col gap-2.5">
+							<Label>Tutor</Label>
+							<Popover
+								open={clientPopoverOpen}
+								onOpenChange={setClientPopoverOpen}
+							>
+								<PopoverTrigger asChild>
+									<Button
+										variant="outline"
+										role="combobox"
+										aria-expanded={clientPopoverOpen}
+										className="w-full justify-between font-normal hover:bg-transparent px-3 rounded-[10px]"
+									>
+										<span className="truncate">
+											{activeClient ? activeClient.name : "Selecionar"}
+										</span>
+										<ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent
+									className="w-[var(--radix-popover-trigger-width)] p-0 rounded-[10px]"
+									align="start"
+								>
+									<div className="flex items-center border-b px-3">
+										<SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+										<input
+											className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+											placeholder="Pesquisar tutor..."
+											value={clientSearch}
+											onChange={(e) => setClientSearch(e.target.value)}
+										/>
+									</div>
+									<ScrollArea className="h-[200px]">
+										{filteredClients.length === 0 ? (
+											<div className="py-6 text-center text-sm text-muted-foreground">
+												Nenhum tutor encontrado.
+											</div>
+										) : (
+											<div className="p-1">
+												{filteredClients.map((client) => (
+													<div
+														key={client.cpf}
+														className={cn(
+															"relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+															clientCpf === client.cpf
+																? "bg-muted font-medium"
+																: "",
+														)}
+														onClick={() => {
+															setClientCpf(client.cpf);
+															setPetId("");
+															setClientPopoverOpen(false);
+															setClientSearch("");
+														}}
+													>
+														<CheckIcon
+															className={cn(
+																"mr-2 h-4 w-4",
+																clientCpf === client.cpf
+																	? "opacity-100"
+																	: "opacity-0",
+															)}
+														/>
+														<span className="truncate">{client.name}</span>
+													</div>
+												))}
+											</div>
+										)}
+									</ScrollArea>
+								</PopoverContent>
+							</Popover>
+						</div>
+					) : null}
+
 					<div className="flex flex-col gap-2.5">
 						<Label>Pet</Label>
-						<Select value={petId} onValueChange={setPetId}>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Selecionar" />
-							</SelectTrigger>
-							<SelectContent>
-								{safeOptions.pets.map((pet) => (
-									<SelectItem key={pet.pet_id} value={pet.pet_id}>
-										{pet.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						{isAdmin ? (
+							<Select
+								value={petId}
+								onValueChange={setPetId}
+								disabled={!activeClient || activeClient.pets.length === 0}
+							>
+								<SelectTrigger className="w-full">
+									<SelectValue
+										placeholder={
+											!activeClient
+												? "Selecione o tutor primeiro"
+												: activeClient.pets.length === 0
+													? "Tutor sem pets"
+													: "Selecionar"
+										}
+									/>
+								</SelectTrigger>
+								<SelectContent>
+									{activeClient?.pets.map((pet) => (
+										<SelectItem key={pet.pet_id} value={pet.pet_id}>
+											{pet.name}{" "}
+											{pet.species_name ? `(${pet.species_name})` : ""}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						) : (
+							<Select value={petId} onValueChange={setPetId}>
+								<SelectTrigger className="w-full">
+									<SelectValue placeholder="Selecionar" />
+								</SelectTrigger>
+								<SelectContent>
+									{clientOptions.pets.map((pet) => (
+										<SelectItem key={pet.pet_id} value={pet.pet_id}>
+											{pet.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
 					</div>
+
 					<div className="flex flex-col gap-2.5">
 						<Label>Especialidade</Label>
 						<Select
@@ -163,7 +361,7 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 								<SelectValue placeholder="Selecionar" />
 							</SelectTrigger>
 							<SelectContent>
-								{safeOptions.specialties.map((specialty) => (
+								{specialties.map((specialty) => (
 									<SelectItem
 										key={specialty.specialty_id}
 										value={specialty.specialty_id}
@@ -174,6 +372,7 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 							</SelectContent>
 						</Select>
 					</div>
+
 					<div className="flex flex-col gap-2.5">
 						<Label>Doutor(a)</Label>
 						<Select value={doctorId} onValueChange={setDoctorId}>
@@ -189,6 +388,7 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 							</SelectContent>
 						</Select>
 					</div>
+
 					<div className="border border-input rounded-[10px] overflow-hidden">
 						<Calendar
 							mode="single"
@@ -198,6 +398,7 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 							onSelect={(date) => setSelectedDate(date ?? null)}
 						/>
 					</div>
+
 					<ScrollArea
 						className="w-[351px] pb-4 whitespace-nowrap"
 						orientation="horizontal"
@@ -219,8 +420,10 @@ export function AppointmentSheet({ options }: AppointmentSheetProps) {
 							))}
 						</div>
 					</ScrollArea>
+
 					{error ? <p className="text-sm text-destructive">{error}</p> : null}
 				</div>
+
 				<SheetFooter>
 					<Button type="button" onClick={handleSubmit} disabled={isPending}>
 						{isPending ? "Agendando..." : "Agendar"}

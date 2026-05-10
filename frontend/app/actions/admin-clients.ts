@@ -85,5 +85,5 @@ export async function deleteAdminClient(cpf: string): Promise<void> {
 		);
 	}
 
-	revalidatePath("/dashboardAdmin/usuarios");
+	revalidatePath("/dashboard/usuarios");
 }

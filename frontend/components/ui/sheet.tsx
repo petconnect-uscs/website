@@ -5,6 +5,7 @@ import { XIcon } from "lucide-react";
 import { Dialog as SheetPrimitive } from "radix-ui";
 
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "./scroll-area";
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
 	return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -73,10 +74,15 @@ function SheetContent({
 				)}
 				{...props}
 			>
-				{children}
+				<ScrollArea className="flex flex-col h-full">
+					<div className="pb-4">{children}</div>
+				</ScrollArea>
 				{showCloseButton && (
-					<SheetPrimitive.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary">
-						<XIcon className="size-4" />
+					<SheetPrimitive.Close
+						tabIndex={-1}
+						className="outline-none ring-none p-2 hover:bg-accent ring-0 focus-within:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-1 right-1 rounded-[10px] opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+					>
+						<XIcon className="size-7" />
 						<span className="sr-only">Close</span>
 					</SheetPrimitive.Close>
 				)}
