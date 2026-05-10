@@ -1,5 +1,7 @@
 "use client";
 
+import { Link } from "next-view-transitions";
+
 import { logoutAction } from "@/app/actions/auth";
 import {
 	DropdownMenu,
@@ -16,9 +18,14 @@ export function SettingsMenu({ children }: { children: React.ReactNode }) {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
 			<DropdownMenuContent className="w-48" align="start">
-				<DropdownMenuItem>
-					<SettingsIcon />
-					Configurações
+				<DropdownMenuItem asChild>
+					<Link
+						href="/dashboard/configuracoes"
+						className="flex cursor-pointer items-center gap-2"
+					>
+						<SettingsIcon />
+						Configurações
+					</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
 				<form action={logoutAction}>
