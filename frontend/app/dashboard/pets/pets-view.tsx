@@ -1,13 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import Image from "next/image";
 import { PlusIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
+import {
+	deletePetAction,
+	fetchPetVaccines,
+	type Pet,
+	type PetOptions,
+	type PetVaccine,
+} from "@/app/actions/pets";
 import { Button } from "@/components/ui/button";
 import { CreateNewPetModal } from "@/components/modals/create-new-pet-modal";
-import type { Pet, PetOptions } from "@/app/actions/pets";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { VaccinesSheet } from "@/components/ui/vaccines-sheet";
 import { getBreedImage, translateBreedName } from "@/lib/breed-translations";
 
 function calculateAge(birthDate: string | null): string {
@@ -53,6 +70,42 @@ export function PetsView({
 	options: PetOptions;
 }) {
 	const [isOpen, setIsOpen] = useState(false);
+	const [isVaccinesOpen, setIsVaccinesOpen] = useState(false);
+	const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
+	const [petVaccines, setPetVaccines] = useState<PetVaccine[]>([]);
+	const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
+	const [isVaccinesPending, startVaccinesTransition] = useTransition();
+	const [isDeletePending, startDeleteTransition] = useTransition();
+	const router = useRouter();
+
+	function handleOpenVaccines(pet: Pet) {
+		setSelectedPetId(pet.pet_id);
+		setIsVaccinesOpen(true);
+		startVaccinesTransition(async () => {
+			const vaccines = await fetchPetVaccines(pet.pet_id);
+			setPetVaccines(vaccines);
+		});
+	}
+
+	function handleDeletePet(pet: Pet) {
+		setPetToDelete(pet);
+	}
+
+	function confirmDeletePet() {
+		if (!petToDelete) return;
+		startDeleteTransition(async () => {
+			const result = await deletePetAction(petToDelete.pet_id);
+
+			if (result?.error) {
+				toast.error(result.error);
+				return;
+			}
+
+			toast.success("Pet excluído com sucesso.");
+			setPetToDelete(null);
+			router.refresh();
+		});
+	}
 
 	return (
 		<>
@@ -141,8 +194,31 @@ export function PetsView({
 										</div>
 									</div>
 									<div className="flex justify-between gap-1 mt-6 p-1">
-										<Button className="flex-grow">Ver Vacinas</Button>
-										<Button variant="outline">Excluir</Button>
+										<VaccinesSheet
+											petName={pet.name}
+											vaccines={
+												selectedPetId === pet.pet_id ? petVaccines : []
+											}
+											loading={
+												isVaccinesPending && selectedPetId === pet.pet_id
+											}
+											open={
+												isVaccinesOpen && selectedPetId === pet.pet_id
+											}
+											onOpen={() => handleOpenVaccines(pet)}
+											onOpenChange={(open) => {
+												if (!open && selectedPetId === pet.pet_id) {
+													setIsVaccinesOpen(false);
+												}
+											}}
+										/>
+										<Button
+											variant="outline"
+											onClick={() => handleDeletePet(pet)}
+											disabled={isDeletePending}
+										>
+											Excluir
+										</Button>
 									</div>
 								</div>
 							))}
@@ -183,6 +259,32 @@ export function PetsView({
 				closeModal={() => setIsOpen(false)}
 				options={options}
 			/>
+			<Dialog open={Boolean(petToDelete)} onOpenChange={(open) => !open && setPetToDelete(null)}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Confirmar exclusão</DialogTitle>
+						<DialogDescription>
+							Deseja excluir o pet{" "}
+							<span className="font-medium text-foreground">
+								{petToDelete?.name ?? ""}
+							</span>
+							? Esta ação pode ser desfeita apenas por suporte técnico.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => setPetToDelete(null)}
+							disabled={isDeletePending}
+						>
+							Cancelar
+						</Button>
+						<Button onClick={confirmDeletePet} disabled={isDeletePending}>
+							{isDeletePending ? "Excluindo..." : "Confirmar"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	);
 }

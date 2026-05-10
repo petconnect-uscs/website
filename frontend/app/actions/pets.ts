@@ -19,6 +19,11 @@ export type Pet = {
 	vaccines: { vaccine_id: string; name: string }[];
 };
 
+export type PetVaccine = {
+	vaccine_id: string;
+	name: string;
+};
+
 export type PetOption = { id: string; name: string };
 
 export type PetOptions = {
@@ -48,6 +53,18 @@ export async function fetchPets(): Promise<Pet[]> {
 	if (!res.ok) return [];
 
 	return (await res.json()) as Pet[];
+}
+
+export async function fetchPetVaccines(petId: string): Promise<PetVaccine[]> {
+	const { token } = await verifySession();
+
+	if (!petId) return [];
+
+	const res = await backend(`/client/pets/${petId}/vaccines`, { token });
+
+	if (!res.ok) return [];
+
+	return (await res.json()) as PetVaccine[];
 }
 
 export async function fetchPetOptions(): Promise<PetOptions> {
@@ -143,6 +160,30 @@ export async function createPetAction(input: CreatePetInput) {
 		} catch {}
 
 		return { error: message };
+	}
+
+	revalidatePath("/dashboard/pets");
+
+	return { success: true as const };
+}
+
+export async function deletePetAction(petId: string) {
+	const { token } = await verifySession();
+
+	if (!petId) return { error: "Pet inválido." };
+
+	let res: Response;
+	try {
+		res = await backend(`/client/pets/${petId}`, {
+			method: "DELETE",
+			token,
+		});
+	} catch {
+		return { error: "Não foi possível conectar ao servidor." };
+	}
+
+	if (!res.ok) {
+		return { error: await readErrorMessage(res, "Falha ao excluir o pet.") };
 	}
 
 	revalidatePath("/dashboard/pets");
