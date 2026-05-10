@@ -71,14 +71,28 @@ async function findPastAppointmentsByClientCpf(
 
 async function findAllAppointments() {
   return prisma.appointment.findMany({
+    where: { deleted_at: null },
     orderBy: { appointment_date: "desc" },
     include: {
-      pet: true,
-      doctor: true,
-      specialty: true,
+      pet: {
+        select: {
+          pet_id: true,
+          name: true,
+          client_cpf: true,
+          client: {
+            select: {
+              cpf: true,
+              name: true,
+            },
+          },
+        },
+      },
+      doctor: { select: { doctor_id: true, name: true } },
+      specialty: { select: { name: true } },
     },
   });
 }
+
 
 export type NewAppointmentData = {
   pet_id: string;

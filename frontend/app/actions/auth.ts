@@ -27,15 +27,15 @@ function defaultAuthError(status: number, action: AuthAction): string {
 async function consumeAuthResponse(
 	res: Response,
 	action: AuthAction,
-): Promise<AuthFormState> {
+): Promise<{ failure?: AuthFormState; token?: string }> {
 	if (!res.ok) {
 		const backendMessage = await readErrorMessage(res, "");
 
 		if (backendMessage) {
-			return { error: `Não foi possível ${action}: ${backendMessage}` };
+			return { failure: { error: `Não foi possível ${action}: ${backendMessage}` } };
 		}
 
-		return { error: defaultAuthError(res.status, action) };
+		return { failure: { error: defaultAuthError(res.status, action) } };
 	}
 
 	const data = (await res
@@ -43,12 +43,12 @@ async function consumeAuthResponse(
 		.catch(() => null)) as Partial<TokenResponse> | null;
 
 	if (!data || typeof data.token !== "string") {
-		return { error: "Resposta inválida do servidor." };
+		return { failure: { error: "Resposta inválida do servidor." } };
 	}
 
 	await createSession(data.token);
 
-	return undefined;
+	return { token: data.token };
 }
 
 export async function loginAction(
@@ -73,7 +73,7 @@ export async function loginAction(
 		return { error: "Não foi possível conectar ao servidor." };
 	}
 
-	const failure = await consumeAuthResponse(res, "fazer login");
+	const { failure } = await consumeAuthResponse(res, "fazer login");
 
 	if (failure) return failure;
 
@@ -108,7 +108,7 @@ export async function signupAction(
 		return { error: "Não foi possível conectar ao servidor." };
 	}
 
-	const failure = await consumeAuthResponse(res, "criar a conta");
+	const { failure } = await consumeAuthResponse(res, "criar a conta");
 
 	if (failure) return failure;
 

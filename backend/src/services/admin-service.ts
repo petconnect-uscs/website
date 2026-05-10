@@ -60,7 +60,7 @@ async function updateAdminProfile(
 }
 
 async function listClientsForAdmin() {
-	return clientModel.findAllClients();
+	return clientModel.findAllClientsWithPetsForAdmin();
 }
 
 async function deleteClientByCpf(cpf: string) {
@@ -71,8 +71,87 @@ async function deleteClientByCpf(cpf: string) {
 	}
 }
 
+async function createClientForAdmin(
+	body: { cpf?: string; name?: string; email?: string; password?: string; birth_date?: string | null },
+	adminId: string | undefined,
+) {
+	if (!adminId) throw new AppError("Não autenticado", 401);
+
+	const cpf = body.cpf?.trim();
+	const name = body.name?.trim();
+	const email = body.email?.trim();
+	const password = body.password ?? "";
+	const birth_date = body.birth_date ?? null;
+
+	if (!cpf || !name || !email || !password) {
+		throw new AppError("Nome, email, CPF e senha são obrigatórios.", 400);
+	}
+
+	const existingByEmail = await clientModel.findClientByEmail(email);
+	if (existingByEmail) throw new AppError("E-mail já cadastrado.", 409);
+
+	const existingByCpf = await clientModel.findClientByCpf(cpf);
+	if (existingByCpf) throw new AppError("CPF já cadastrado.", 409);
+
+	const passwordHash = await bcrypt.hash(password, 10);
+
+	const created = await clientModel.createClient({
+		cpf,
+		name,
+		email,
+		birth_date,
+		passwordHash,
+	});
+
+	return { cpf: created.cpf };
+}
+
 async function listAppointmentsForAdmin() {
 	return appointmentModel.findAllAppointments();
+}
+
+async function createAppointmentForAdmin(
+	body: {
+		client_cpf?: string;
+		pet_id?: string;
+		appointment_date?: string;
+		doctor_id?: string;
+		specialty_id?: string;
+	},
+	adminId: string | undefined
+) {
+	if (!adminId) throw new AppError("Não autenticado", 401);
+
+	const { client_cpf, pet_id, appointment_date, doctor_id, specialty_id } = body ?? {};
+
+	if (!client_cpf || !pet_id || !appointment_date || !doctor_id || !specialty_id) {
+		throw new AppError(
+			"Os campos client_cpf, pet_id, appointment_date, doctor_id e specialty_id são obrigatórios.",
+			400
+		);
+	}
+
+	const date = new Date(appointment_date);
+	if (isNaN(date.getTime())) {
+		throw new AppError("appointment_date inválida.", 400);
+	}
+	if (date <= new Date()) {
+		throw new AppError("A data do agendamento deve ser futura.", 400);
+	}
+
+	const pet = await prisma.pet.findFirst({
+		where: { pet_id, client_cpf, deleted_at: null },
+	});
+	if (!pet) {
+		throw new AppError("Pet não encontrado ou não pertence a este cliente.", 403);
+	}
+
+	return appointmentModel.createAppointment({
+		pet_id,
+		appointment_date: date,
+		doctor_id,
+		specialty_id,
+	});
 }
 
 async function listRecipesForAdmin() {
@@ -349,8 +428,10 @@ export {
 	getAdminProfile,
 	updateAdminProfile,
 	listClientsForAdmin,
+	createClientForAdmin,
 	deleteClientByCpf,
 	listAppointmentsForAdmin,
+	createAppointmentForAdmin,
 	listRecipesForAdmin,
 	listDoctorsForAdmin,
 	listSpecialtiesForAdmin,

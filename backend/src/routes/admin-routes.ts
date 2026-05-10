@@ -6,8 +6,10 @@ import {
   getProfile,
   updateProfile,
   getClients,
+  createClient,
   deleteClient,
   getAppointments,
+  createAppointment,
   getRecipes,
   getDoctors,
   getSpecialties,
@@ -34,8 +36,10 @@ router.use(authMiddleware, requireAdmin);
 router.get("/profile", getProfile);
 router.put("/profile", updateProfile);
 router.get("/clients", getClients);
+router.post("/clients", createClient);
 router.delete("/clients/:cpf", deleteClient);
 router.get("/appointments", getAppointments);
+router.post("/appointments", createAppointment);
 router.get("/recipes", getRecipes);
 router.post("/recipes/upload", upload.single("pdf"), uploadRecipePdf);
 router.post("/recipes", createRecipe);
