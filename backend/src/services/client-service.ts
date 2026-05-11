@@ -14,6 +14,23 @@ import { AppError } from "@/services/auth-service.ts";
 const __serviceDir = path.dirname(fileURLToPath(import.meta.url));
 const RECIPE_PDFS_DIR = path.resolve(__serviceDir, "../public/pdfs");
 
+function parseAppointmentId(appointmentId: string | undefined): number {
+  const id = Number(appointmentId);
+  if (!Number.isInteger(id) || id < 1) {
+    throw new AppError("ID do agendamento inválido", 400);
+  }
+  return id;
+}
+
+function assertAppointmentCanBeCancelled(appointmentDate: Date) {
+  if (appointmentDate <= new Date()) {
+    throw new AppError(
+      "Não é possível cancelar um agendamento já concluído.",
+      409
+    );
+  }
+}
+
 function basenameFromStoredPdfUrl(url: string): string | null {
 	const m = url.match(/\/public\/pdfs\/([^/?#]+)$/);
 	return m?.[1] ?? null;
@@ -200,6 +217,33 @@ async function createAppointment(
   });
 }
 
+async function cancelAppointmentByClient(
+  cpf: string | undefined,
+  appointmentIdParam: string | undefined
+) {
+  if (!cpf) {
+    throw new AppError("CPF não informado no token", 401);
+  }
+
+  const appointmentId = parseAppointmentId(appointmentIdParam);
+  const appointment =
+    await appointmentModel.findActiveAppointmentByIdAndClientCpf(
+      appointmentId,
+      cpf
+    );
+
+  if (!appointment) {
+    throw new AppError("Agendamento não encontrado", 404);
+  }
+
+  assertAppointmentCanBeCancelled(appointment.appointment_date);
+
+  const deleted = await appointmentModel.softDeleteAppointment(appointmentId);
+  if (!deleted) {
+    throw new AppError("Agendamento não encontrado", 404);
+  }
+}
+
 async function listClientPets(cpf: string | undefined) {
   if (!cpf) {
     throw new AppError("CPF não informado no token", 401);
@@ -243,6 +287,7 @@ export {
   listRecipesByClient,
   getRecipePdfFileForClientDownload,
   createAppointment,
+  cancelAppointmentByClient,
   listClientPets,
   listSpecialties,
   listDoctors,

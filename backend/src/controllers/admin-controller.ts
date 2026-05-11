@@ -59,6 +59,14 @@ const createAppointment = asyncHandler((req) =>
   201
 );
 
+const cancelAppointment = asyncHandler(async (req) => {
+  await adminService.cancelAppointmentForAdmin(
+    req.params.appointmentId as string | undefined,
+    req.user?.admin_id
+  );
+  return { message: "Agendamento cancelado com sucesso" };
+});
+
 const getRecipes = asyncHandler(() => adminService.listRecipesForAdmin());
 
 const getDoctors = asyncHandler(() => adminService.listDoctorsForAdmin());
@@ -183,6 +191,7 @@ export {
   deleteClient,
   getAppointments,
   createAppointment,
+  cancelAppointment,
   getRecipes,
   getDoctors,
   getSpecialties,

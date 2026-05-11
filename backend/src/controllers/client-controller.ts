@@ -74,6 +74,14 @@ const createAppointment = asyncHandler(async (req) => {
   return clientService.createAppointment(req.user?.cpf, req.body);
 }, 201);
 
+const cancelAppointment = asyncHandler(async (req) => {
+  await clientService.cancelAppointmentByClient(
+    req.user?.cpf,
+    req.params.appointmentId as string | undefined
+  );
+  return { message: "Agendamento cancelado com sucesso" };
+});
+
 const getClientPets = asyncHandler(async (req) => {
   return clientService.listClientPets(req.user?.cpf);
 });
@@ -98,6 +106,7 @@ export {
   getRecipes,
   getRecipePdf,
   createAppointment,
+  cancelAppointment,
   getClientPets,
   getSpecialties,
   getDoctors,
