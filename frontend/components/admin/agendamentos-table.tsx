@@ -2,15 +2,20 @@
 
 import { useMemo, useState } from "react";
 
-import {
-	type AdminAppointment,
-} from "@/app/actions/admin-appointments";
+import { type AdminAppointment } from "@/app/actions/admin-appointments";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Status } from "@/components/ui/status";
 import {
 	InputGroup,
 	InputGroupAddon,
 	InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -26,19 +31,23 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Search } from "lucide-react";
+import { ChevronDownIcon, Search, XIcon } from "lucide-react";
 
 type Props = {
 	appointments: AdminAppointment[];
 };
 
-function dateOnlyIso(value: string): string {
-	const d = new Date(value);
-	if (Number.isNaN(d.getTime())) return "";
+function formatDateOnly(d: Date): string {
 	const y = d.getFullYear();
 	const m = String(d.getMonth() + 1).padStart(2, "0");
 	const day = String(d.getDate()).padStart(2, "0");
 	return `${y}-${m}-${day}`;
+}
+
+function dateOnlyIso(value: string): string {
+	const d = new Date(value);
+	if (Number.isNaN(d.getTime())) return "";
+	return formatDateOnly(d);
 }
 
 function formatDateTimeBr(value: string): string {
@@ -56,7 +65,8 @@ function formatDateTimeBr(value: string): string {
 export function AgendamentosTable({ appointments }: Props) {
 	const [query, setQuery] = useState("");
 	const [doctorFilter, setDoctorFilter] = useState("all");
-	const [dateFilter, setDateFilter] = useState("");
+	const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+	const [datePickerOpen, setDatePickerOpen] = useState(false);
 	const [nowReference] = useState(() => Date.now());
 
 	const doctors = useMemo(() => {
@@ -71,6 +81,7 @@ export function AgendamentosTable({ appointments }: Props) {
 
 	const filteredAndSorted = useMemo(() => {
 		const normalizedQuery = query.trim().toLowerCase();
+		const dateFilterIso = dateFilter ? formatDateOnly(dateFilter) : "";
 
 		return appointments
 			.filter((a) => {
@@ -81,7 +92,8 @@ export function AgendamentosTable({ appointments }: Props) {
 					return false;
 				}
 
-				if (dateFilter && dateOnlyIso(a.dateTimeIso) !== dateFilter) return false;
+				if (dateFilterIso && dateOnlyIso(a.dateTimeIso) !== dateFilterIso)
+					return false;
 
 				if (!normalizedQuery) return true;
 
@@ -93,68 +105,90 @@ export function AgendamentosTable({ appointments }: Props) {
 				);
 			})
 			.sort((a, b) => {
-				const diffA = Math.abs(new Date(a.dateTimeIso).getTime() - nowReference);
-				const diffB = Math.abs(new Date(b.dateTimeIso).getTime() - nowReference);
+				const diffA = Math.abs(
+					new Date(a.dateTimeIso).getTime() - nowReference,
+				);
+				const diffB = Math.abs(
+					new Date(b.dateTimeIso).getTime() - nowReference,
+				);
 				return diffA - diffB;
 			});
 	}, [appointments, dateFilter, doctorFilter, nowReference, query]);
 
 	return (
 		<div className="space-y-4">
-			<div className="flex flex-wrap items-end gap-4 rounded-md border bg-muted/20 p-3">
-				<div className="space-y-1">
-					<p className="text-xs font-medium text-muted-foreground">Buscar</p>
-					<InputGroup>
-						<InputGroupAddon>
-							<Search className="size-3.5" />
-						</InputGroupAddon>
-						<InputGroupInput
-							placeholder="Pet, dono, doutor ou especialidade"
-							className="w-[320px] max-w-full bg-white"
-							value={query}
-							onChange={(e) => setQuery(e.target.value)}
-						/>
-					</InputGroup>
-				</div>
-
-				<div className="space-y-1">
-					<p className="text-xs font-medium text-muted-foreground">
-						Filtrar por data
-					</p>
+			<div className="flex items-center gap-1.5">
+				<InputGroup className="max-w-[360px]">
+					<InputGroupAddon>
+						<Search className="size-3.5" />
+					</InputGroupAddon>
 					<InputGroupInput
-						type="date"
-						className="w-[190px] bg-white"
-						value={dateFilter}
-						onChange={(e) => setDateFilter(e.target.value)}
+						placeholder="Buscar por pet, tutor, doutor ou especialidade"
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
 					/>
-				</div>
+				</InputGroup>
 
-				<div className="space-y-1">
-					<p className="text-xs font-medium text-muted-foreground">
-						Filtrar por doutor
-					</p>
-					<Select value={doctorFilter} onValueChange={setDoctorFilter}>
-						<SelectTrigger className="w-[240px] bg-white">
-							<SelectValue placeholder="Todos os doutores" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">Todos os doutores</SelectItem>
-							{doctors.map((doctor) => (
-								<SelectItem key={doctor} value={doctor}>
-									{doctor}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
+				<Select value={doctorFilter} onValueChange={setDoctorFilter}>
+					<SelectTrigger className="bg-white">
+						<SelectValue placeholder="Todos os doutores" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">Todos os doutores</SelectItem>
+						{doctors.map((doctor) => (
+							<SelectItem key={doctor} value={doctor}>
+								{doctor}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+
+				<Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+					<PopoverTrigger asChild>
+						<Button
+							variant="outline"
+							className="group w-[250px] justify-between bg-white font-normal text-sm text-accent-foreground h-8! pl-3! pr-2!"
+						>
+							{dateFilter
+								? dateFilter.toLocaleDateString("pt-BR")
+								: "Filtrar por data"}
+							{dateFilter ? (
+								<span
+									role="button"
+									tabIndex={0}
+									aria-label="Limpar filtro de data"
+									onClick={(e) => {
+										e.stopPropagation();
+										setDateFilter(undefined);
+									}}
+								>
+									<XIcon className="size-4.5 opacity-50" />
+								</span>
+							) : (
+								<ChevronDownIcon className="size-5 opacity-50 transition-all group-data-[state=open]:rotate-180" />
+							)}
+						</Button>
+					</PopoverTrigger>
+					<PopoverContent className="w-auto overflow-hidden p-0" align="start">
+						<Calendar
+							mode="single"
+							selected={dateFilter}
+							captionLayout="dropdown"
+							onSelect={(date) => {
+								setDateFilter(date);
+								setDatePickerOpen(false);
+							}}
+						/>
+					</PopoverContent>
+				</Popover>
 			</div>
 
-			<div className="overflow-hidden rounded-md border bg-background px-4">
+			<div className="overflow-hidden rounded-md border bg-background">
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead>Pet</TableHead>
-							<TableHead>Dono</TableHead>
+							<TableHead className="px-4">Pet</TableHead>
+							<TableHead>Tutor</TableHead>
 							<TableHead>Especialidade</TableHead>
 							<TableHead>Profissional</TableHead>
 							<TableHead>Data e horário</TableHead>
@@ -165,7 +199,7 @@ export function AgendamentosTable({ appointments }: Props) {
 						{filteredAndSorted.length > 0 ? (
 							filteredAndSorted.map((row) => (
 								<TableRow key={row.id}>
-									<TableCell>{row.petName}</TableCell>
+									<TableCell className="px-4">{row.petName}</TableCell>
 									<TableCell>{row.ownerName}</TableCell>
 									<TableCell>{row.specialtyName}</TableCell>
 									<TableCell>{row.doctorName}</TableCell>
@@ -188,4 +222,3 @@ export function AgendamentosTable({ appointments }: Props) {
 		</div>
 	);
 }
-

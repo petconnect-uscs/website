@@ -123,7 +123,7 @@ export async function createAdminAppointmentAction(input: CreateAdminAppointment
 		};
 	}
 
-	revalidatePath("/dashboardAdmin/agendamentos");
+	revalidatePath("/dashboard/agendamentos");
 
 	return { success: true as const };
 }

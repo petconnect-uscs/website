@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { fetchAdminAppointments } from "@/app/actions/admin-appointments";
 import { fetchAdminDoctors } from "@/app/actions/admin-doctors";
 import { HomeDoctorsTable } from "@/components/admin/home-doctors-table";
+import { Link } from "next-view-transitions";
 import { getUser } from "@/lib/dal";
 import { fetchAppointments } from "@/app/actions/appointments";
 import { fetchAppointmentHistory } from "@/app/actions/history";
@@ -18,6 +18,7 @@ export default async function Dashboard() {
 		fetchAppointmentHistory(),
 		fetchRecipes(),
 	]);
+
 
 	const proximos = agendamentos
 		.filter((a) => a.status === "agendado")
