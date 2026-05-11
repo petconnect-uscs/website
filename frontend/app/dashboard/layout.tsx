@@ -9,7 +9,7 @@ export default async function DashboardLayout({
 	const user = await getUser();
 
 	return (
-		<main className="flex">
+		<main className="flex min-h-dvh">
 			<Sidebar user={user} />
 			<article className="flex-1 px-15 pt-16 pb-0">{children}</article>
 		</main>

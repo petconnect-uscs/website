@@ -56,6 +56,12 @@ function formatSex(sex: string | null): string {
 	return sex ?? "—";
 }
 
+function formatBoolBr(value: boolean | null | undefined): string {
+	if (value === true) return "Sim";
+	if (value === false) return "Não";
+	return "—";
+}
+
 export function PetsView({
 	pets,
 	options,
@@ -168,6 +174,22 @@ export function PetsView({
 											</span>
 											<p className="font-semibold text-sm text-foreground">
 												{formatSex(pet.sex)}
+											</p>
+										</div>
+										<div className="flex flex-col">
+											<span className="text-xs text-muted-foreground font-medium">
+												Castrado
+											</span>
+											<p className="font-semibold text-sm text-foreground">
+												{formatBoolBr(pet.is_neutered)}
+											</p>
+										</div>
+										<div className="flex flex-col">
+											<span className="text-xs text-muted-foreground font-medium">
+												Vacinado
+											</span>
+											<p className="font-semibold text-sm text-foreground">
+												{formatBoolBr(pet.is_vaccinated)}
 											</p>
 										</div>
 									</div>

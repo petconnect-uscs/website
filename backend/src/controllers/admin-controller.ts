@@ -37,6 +37,13 @@ const updateProfile = asyncHandler((req) => {
 
 const getClients = asyncHandler(() => adminService.listClientsForAdmin());
 
+const createClient = asyncHandler((req) => {
+  return adminService.createClientForAdmin(
+    req.body as { cpf?: string; name?: string; email?: string; password?: string; birth_date?: string | null },
+    req.user?.admin_id
+  );
+}, 201);
+
 const deleteClient = asyncHandler(async (req) => {
   const cpf = req.params.cpf as string;
   await adminService.deleteClientByCpf(cpf);
@@ -45,6 +52,11 @@ const deleteClient = asyncHandler(async (req) => {
 
 const getAppointments = asyncHandler(() =>
   adminService.listAppointmentsForAdmin()
+);
+
+const createAppointment = asyncHandler((req) =>
+  adminService.createAppointmentForAdmin(req.body, req.user?.admin_id),
+  201
 );
 
 const getRecipes = asyncHandler(() => adminService.listRecipesForAdmin());
@@ -161,8 +173,10 @@ export {
   getProfile,
   updateProfile,
   getClients,
+  createClient,
   deleteClient,
   getAppointments,
+  createAppointment,
   getRecipes,
   getDoctors,
   getSpecialties,
