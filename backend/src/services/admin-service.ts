@@ -270,6 +270,18 @@ async function getDoctorAppointmentsForAdmin(doctorId: string) {
 	return appointments;
 }
 
+async function getDoctorAvailabilityForAdmin(doctorId: string | undefined) {
+	if (!doctorId) {
+		throw new AppError("doctorId não informado", 400);
+	}
+
+	const booked = await appointmentModel.findBookedDatesByDoctor(doctorId);
+
+	return {
+		booked_dates: booked.map((d) => d.toISOString()),
+	};
+}
+
 async function getDoctorForAdmin(doctorId: string) {
 	const doctor = await doctorModel.findDoctorById(doctorId);
 	if (!doctor) throw new AppError("Doutor não encontrado", 404);
@@ -445,6 +457,7 @@ export {
 	createRecipeForAdmin,
 	deleteRecipeForAdmin,
 	getDoctorAppointmentsForAdmin,
+	getDoctorAvailabilityForAdmin,
 	listBreedsForAdmin,
 	createBreedForAdmin,
 	updateBreedForAdmin,

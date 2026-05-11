@@ -1,3 +1,7 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import bcrypt from "bcrypt";
 import prisma from "@/prisma-client.ts";
 import * as appointmentModel from "@/models/appointment-model.ts";
@@ -6,6 +10,31 @@ import * as recipeModel from "@/models/recipe-model.ts";
 import * as doctorModel from "@/models/doctor-model.ts";
 import * as specialtyModel from "@/models/specialty-model.ts";
 import { AppError } from "@/services/auth-service.ts";
+
+const __serviceDir = path.dirname(fileURLToPath(import.meta.url));
+const RECIPE_PDFS_DIR = path.resolve(__serviceDir, "../public/pdfs");
+
+function basenameFromStoredPdfUrl(url: string): string | null {
+	const m = url.match(/\/public\/pdfs\/([^/?#]+)$/);
+	return m?.[1] ?? null;
+}
+
+function resolveSafePdfPath(basename: string): string {
+	if (
+		!basename ||
+		basename.includes("..") ||
+		basename.includes("/") ||
+		basename.includes("\\")
+	) {
+		throw new AppError("Referência ao arquivo da receita inválida", 400);
+	}
+	const absolute = path.resolve(RECIPE_PDFS_DIR, basename);
+	const rel = path.relative(RECIPE_PDFS_DIR, absolute);
+	if (rel.startsWith("..") || path.isAbsolute(rel)) {
+		throw new AppError("Referência ao arquivo da receita inválida", 400);
+	}
+	return absolute;
+}
 
 async function listAppointmentsByClient(cpf: string | undefined) {
   if (!cpf) {
@@ -86,6 +115,44 @@ async function listRecipesByClient(cpf: string | undefined) {
   }
 
   return recipeModel.findRecipesByClientCpf(cpf);
+}
+
+async function getRecipePdfFileForClientDownload(
+  cpf: string | undefined,
+  recipeId: number
+): Promise<{ absolutePath: string; downloadName: string }> {
+  if (!cpf) {
+    throw new AppError("CPF não informado no token", 401);
+  }
+
+  const row = await recipeModel.findClientRecipePdfByRecipeIdAndCpf(
+    recipeId,
+    cpf
+  );
+
+  if (!row) {
+    throw new AppError("Receita não encontrada", 404);
+  }
+
+  if (!row.pdf_url) {
+    throw new AppError("PDF não disponível para esta receita", 404);
+  }
+
+  const basename = basenameFromStoredPdfUrl(row.pdf_url);
+  if (!basename) {
+    throw new AppError("Referência ao arquivo da receita inválida", 400);
+  }
+
+  const absolutePath = resolveSafePdfPath(basename);
+
+  if (!fs.existsSync(absolutePath)) {
+    throw new AppError("Arquivo da receita não encontrado no servidor", 404);
+  }
+
+  return {
+    absolutePath,
+    downloadName: `receita-${recipeId}.pdf`,
+  };
 }
 
 async function createAppointment(
@@ -174,6 +241,7 @@ export {
   getClientProfile,
   updateClientProfile,
   listRecipesByClient,
+  getRecipePdfFileForClientDownload,
   createAppointment,
   listClientPets,
   listSpecialties,

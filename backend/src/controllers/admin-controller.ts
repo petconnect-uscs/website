@@ -100,6 +100,12 @@ const getDoctorAppointments = asyncHandler(async (req) => {
   return adminService.getDoctorAppointmentsForAdmin(doctorId);
 });
 
+const getDoctorAvailability = asyncHandler(async (req) => {
+  return adminService.getDoctorAvailabilityForAdmin(
+    req.params.doctorId as string | undefined
+  );
+});
+
 const createDoctor = asyncHandler(
   async (req) =>
     adminService.createDoctorForAdmin(
@@ -191,6 +197,7 @@ export {
   deleteRecipe,
   uploadRecipePdf,
   getDoctorAppointments,
+  getDoctorAvailability,
   getBreeds,
   createBreed,
   updateBreed,

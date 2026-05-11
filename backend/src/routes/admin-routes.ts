@@ -24,6 +24,7 @@ import {
   deleteRecipe,
   uploadRecipePdf,
   getDoctorAppointments,
+  getDoctorAvailability,
   getBreeds,
   createBreed,
   updateBreed,
@@ -54,6 +55,7 @@ router.post("/doctor", createDoctor);
 router.put("/doctor/:doctorId", updateDoctor);
 router.delete("/doctor/:doctorId", deleteDoctor);
 router.get("/doctor/:doctorId/appointments", getDoctorAppointments);
+router.get("/doctor/:doctorId/availability", getDoctorAvailability);
 router.get("/breeds", getBreeds);
 router.post("/breeds", createBreed);
 router.put("/breeds/:id", updateBreed);

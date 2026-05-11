@@ -75,6 +75,39 @@ export async function fetchAppointments(): Promise<Agendamento[]> {
 	return rows.map(mapAppointment);
 }
 
+export type DoctorAvailabilityResponse = {
+	booked_dates: string[];
+};
+
+export async function fetchDoctorAvailabilityAction(
+	doctorId: string,
+): Promise<DoctorAvailabilityResponse | { error: string }> {
+	const { token } = await verifySession();
+
+	if (!doctorId.trim()) {
+		return { error: "Doutor(a) não informado(a)." };
+	}
+
+	const res = await backend(
+		`/client/doctors/${encodeURIComponent(doctorId)}/availability`,
+		{ token },
+	);
+
+	if (!res.ok) {
+		return {
+			error: await readErrorMessage(
+				res,
+				"Não foi possível carregar a disponibilidade do profissional.",
+			),
+		};
+	}
+
+	const data = (await res.json()) as DoctorAvailabilityResponse;
+	return {
+		booked_dates: Array.isArray(data.booked_dates) ? data.booked_dates : [],
+	};
+}
+
 export async function fetchAppointmentFormOptions(): Promise<AppointmentFormOptions> {
 	const { token } = await verifySession();
 

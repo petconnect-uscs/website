@@ -46,6 +46,30 @@ const getRecipes = asyncHandler(async (req) => {
   return clientService.listRecipesByClient(req.user?.cpf);
 });
 
+const getRecipePdf: RequestHandler = async (req, res, next) => {
+  try {
+    const recipeId = Number(req.params.recipeId);
+    if (!Number.isFinite(recipeId) || recipeId < 1) {
+      return res.status(400).json({ error: "ID da receita inválido" });
+    }
+
+    const { absolutePath, downloadName } =
+      await clientService.getRecipePdfFileForClientDownload(
+        req.user?.cpf,
+        recipeId
+      );
+
+    res.download(absolutePath, downloadName, (err) => {
+      if (err) next(err);
+    });
+  } catch (err) {
+    if (err instanceof AppError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    next(err);
+  }
+};
+
 const createAppointment = asyncHandler(async (req) => {
   return clientService.createAppointment(req.user?.cpf, req.body);
 }, 201);
@@ -63,7 +87,7 @@ const getDoctors = asyncHandler(async (req) => {
 });
 
 const getDoctorAvailability = asyncHandler(async (req) => {
-  return clientService.getDoctorAvailability(req.params.doctorId);
+  return clientService.getDoctorAvailability(req.params.doctorId as string | undefined);
 });
 
 export {
@@ -72,6 +96,7 @@ export {
   getProfile,
   updateProfile,
   getRecipes,
+  getRecipePdf,
   createAppointment,
   getClientPets,
   getSpecialties,

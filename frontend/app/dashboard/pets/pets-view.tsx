@@ -25,6 +25,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { VaccinesSheet } from "@/components/ui/vaccines-sheet";
+import labradorFallback from "@/assets/dogs/labrador.png";
 import { getBreedImage, translateBreedName } from "@/lib/breed-translations";
 
 function calculateAge(birthDate: string | null): string {
@@ -60,6 +61,41 @@ function formatBoolBr(value: boolean | null | undefined): string {
 	if (value === true) return "Sim";
 	if (value === false) return "Não";
 	return "—";
+}
+
+function PetCoverImage({
+	name,
+	imageUrl,
+	breedName,
+}: {
+	name: string;
+	imageUrl: string | null;
+	breedName: string | null;
+}) {
+	const trimmed = imageUrl?.trim();
+	if (trimmed && /^https?:\/\//i.test(trimmed)) {
+		return (
+			<img
+				src={trimmed}
+				alt={name}
+				className="h-[170px] w-full rounded-t-lg rounded-b-none object-cover"
+				loading="lazy"
+				decoding="async"
+			/>
+		);
+	}
+
+	const breedImg = getBreedImage(breedName);
+
+	return (
+		<Image
+			src={breedImg ?? labradorFallback}
+			width={170}
+			height={170}
+			className="h-[170px] w-full rounded-t-lg rounded-b-none object-cover"
+			alt={name}
+		/>
+	);
 }
 
 export function PetsView({
@@ -130,16 +166,10 @@ export function PetsView({
 									key={pet.pet_id}
 									className="flex flex-col rounded-[10px] border"
 								>
-									<Image
-										src={
-											pet.image_url ??
-											getBreedImage(pet.breed_name) ??
-											"/src/img/pet1.png"
-										}
-										width={170}
-										height={170}
-										className="w-full h-[170px] object-cover rounded-t-lg rounded-b-none"
-										alt={pet.name}
+									<PetCoverImage
+										name={pet.name}
+										imageUrl={pet.image_url}
+										breedName={pet.breed_name}
 									/>
 									<div className="grid grid-cols-2 w-[80%] gap-y-4 mt-4 ml-4">
 										<div className="flex flex-col ">

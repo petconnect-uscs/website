@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import type { Matcher } from "react-day-picker";
 import {
 	CheckIcon,
 	ChevronsUpDownIcon,
@@ -15,8 +16,14 @@ import {
 } from "@/app/actions/admin-appointments";
 import {
 	createAppointmentAction,
+	fetchDoctorAvailabilityAction,
 	type AppointmentFormOptions,
 } from "@/app/actions/appointments";
+import {
+	fullyBookedLocalDayKeys,
+	indexBookedHoursByLocalDay,
+	localDayKey,
+} from "@/lib/appointment-availability";
 import { translateSpecialtyName } from "@/lib/specialty-translations";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -68,6 +75,13 @@ function buildAppointmentDate(date: Date | null, time: string): string | null {
 	return merged.toISOString();
 }
 
+function slotTimestampMs(date: Date | null, time: string): number | null {
+	const iso = buildAppointmentDate(date, time);
+	if (!iso) return null;
+	const t = new Date(iso).getTime();
+	return Number.isNaN(t) ? null : t;
+}
+
 export function AppointmentSheet(props: AppointmentSheetProps) {
 	const isAdmin = props.mode === "admin";
 
@@ -93,6 +107,12 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 	const [selectedTime, setSelectedTime] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, startTransition] = useTransition();
+
+	const [bookedDatesIso, setBookedDatesIso] = useState<string[]>([]);
+	const [availabilityLoading, setAvailabilityLoading] = useState(false);
+	const [availabilityError, setAvailabilityError] = useState<string | null>(
+		null,
+	);
 
 	const activeClient = useMemo(() => {
 		if (!isAdmin) return null;
@@ -134,6 +154,96 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 		? adminOptions.specialties
 		: clientOptions.specialties;
 
+	const bookedByDay = useMemo(
+		() => indexBookedHoursByLocalDay(isAdmin ? [] : bookedDatesIso),
+		[isAdmin, bookedDatesIso],
+	);
+
+	const fullyBookedKeys = useMemo(
+		() => fullyBookedLocalDayKeys(bookedByDay),
+		[bookedByDay],
+	);
+
+	const startOfToday = useMemo(() => {
+		const d = new Date();
+		d.setHours(0, 0, 0, 0);
+		return d;
+	}, []);
+
+	const calendarDisabled = useMemo((): Matcher | Matcher[] => {
+		const matchers: Matcher[] = [{ before: startOfToday }];
+		if (!isAdmin && fullyBookedKeys.size > 0) {
+			matchers.push((date) => fullyBookedKeys.has(localDayKey(date)));
+		}
+		return matchers;
+	}, [startOfToday, isAdmin, fullyBookedKeys]);
+
+	useEffect(() => {
+		if (isAdmin) {
+			setBookedDatesIso([]);
+			setAvailabilityLoading(false);
+			setAvailabilityError(null);
+			return;
+		}
+
+		if (!doctorId) {
+			setBookedDatesIso([]);
+			setAvailabilityLoading(false);
+			setAvailabilityError(null);
+			return;
+		}
+
+		let cancelled = false;
+		setAvailabilityLoading(true);
+		setAvailabilityError(null);
+
+		void (async () => {
+			const result = await fetchDoctorAvailabilityAction(doctorId);
+			if (cancelled) return;
+
+			setAvailabilityLoading(false);
+
+			if ("error" in result) {
+				setBookedDatesIso([]);
+				setAvailabilityError(result.error);
+				return;
+			}
+
+			setBookedDatesIso(result.booked_dates);
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [isAdmin, doctorId]);
+
+	useEffect(() => {
+		if (!selectedDate || isAdmin) return;
+		const key = localDayKey(selectedDate);
+		if (fullyBookedKeys.has(key)) {
+			setSelectedDate(null);
+			setSelectedTime("");
+		}
+	}, [isAdmin, selectedDate, fullyBookedKeys]);
+
+	useEffect(() => {
+		if (!selectedDate || !selectedTime) return;
+
+		const ts = slotTimestampMs(selectedDate, selectedTime);
+		if (ts !== null && ts < Date.now()) {
+			setSelectedTime("");
+			return;
+		}
+
+		if (isAdmin) return;
+
+		const key = localDayKey(selectedDate);
+		const hour = Number.parseInt(selectedTime.slice(0, 2), 10);
+		if (!Number.isNaN(hour) && bookedByDay.get(key)?.has(hour)) {
+			setSelectedTime("");
+		}
+	}, [selectedDate, selectedTime, isAdmin, bookedByDay]);
+
 	function resetForm() {
 		setClientCpf("");
 		setClientSearch("");
@@ -143,6 +253,9 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 		setSelectedDate(null);
 		setSelectedTime("");
 		setError(null);
+		setBookedDatesIso([]);
+		setAvailabilityLoading(false);
+		setAvailabilityError(null);
 	}
 
 	function handleSubmit() {
@@ -161,6 +274,12 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 				setError(
 					"Preencha tutor, pet, especialidade, doutor(a), data e horário.",
 				);
+				return;
+			}
+
+			const adminSlotTs = slotTimestampMs(selectedDate, selectedTime);
+			if (adminSlotTs !== null && adminSlotTs < Date.now()) {
+				setError("Escolha uma data e horário no futuro.");
 				return;
 			}
 
@@ -188,6 +307,21 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 		if (!petId || !specialtyId || !doctorId || !appointmentDate) {
 			setError("Preencha pet, especialidade, doutor(a), data e horario.");
 			return;
+		}
+
+		const slotTs = slotTimestampMs(selectedDate, selectedTime);
+		if (slotTs !== null && slotTs < Date.now()) {
+			setError("Escolha uma data e horário no futuro.");
+			return;
+		}
+
+		if (selectedDate && selectedTime) {
+			const key = localDayKey(selectedDate);
+			const hour = Number.parseInt(selectedTime.slice(0, 2), 10);
+			if (!Number.isNaN(hour) && bookedByDay.get(key)?.has(hour)) {
+				setError("Este horário já está ocupado para o profissional escolhido.");
+				return;
+			}
 		}
 
 		startTransition(async () => {
@@ -395,29 +529,61 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 							className="w-full"
 							selected={selectedDate ?? undefined}
 							captionLayout="dropdown"
+							disabled={calendarDisabled}
 							onSelect={(date) => setSelectedDate(date ?? null)}
 						/>
 					</div>
+
+					{!isAdmin && availabilityLoading ? (
+						<p className="text-xs text-muted-foreground">
+							A carregar disponibilidade do profissional…
+						</p>
+					) : null}
+					{!isAdmin && availabilityError ? (
+						<p className="text-xs text-destructive">{availabilityError}</p>
+					) : null}
 
 					<ScrollArea
 						className="w-[351px] pb-4 whitespace-nowrap"
 						orientation="horizontal"
 					>
 						<div className="flex items-center gap-2">
-							{SLOT_TIMES.map((time) => (
-								<button
-									key={time}
-									type="button"
-									onClick={() => setSelectedTime(time)}
-									className={`flex items-center border rounded-full px-2 py-1 ${
-										selectedTime === time
-											? "border-primary bg-primary text-primary-foreground"
-											: "border-input"
-									}`}
-								>
-									<span className="text-sm font-medium">{time}</span>
-								</button>
-							))}
+							{SLOT_TIMES.map((time) => {
+								const ts = slotTimestampMs(selectedDate, time);
+								const inPast =
+									ts !== null && ts < Date.now();
+								const key = selectedDate
+									? localDayKey(selectedDate)
+									: "";
+								const hour = Number.parseInt(time.slice(0, 2), 10);
+								const booked =
+									!isAdmin &&
+									selectedDate !== null &&
+									!Number.isNaN(hour) &&
+									(bookedByDay.get(key)?.has(hour) ?? false);
+								const slotDisabled = inPast || booked;
+
+								return (
+									<button
+										key={time}
+										type="button"
+										disabled={slotDisabled}
+										onClick={() => {
+											if (!slotDisabled) setSelectedTime(time);
+										}}
+										className={cn(
+											"flex items-center border rounded-full px-2 py-1 transition-opacity",
+											selectedTime === time
+												? "border-primary bg-primary text-primary-foreground"
+												: "border-input",
+											slotDisabled &&
+												"opacity-40 pointer-events-none cursor-not-allowed",
+										)}
+									>
+										<span className="text-sm font-medium">{time}</span>
+									</button>
+								);
+							})}
 						</div>
 					</ScrollArea>
 

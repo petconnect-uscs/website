@@ -70,16 +70,18 @@ export function RecipesSheet({ items }: RecipesSheetProps) {
 									{item.pdf_url ? (
 										<Button variant="outline" size="sm" asChild>
 											<a
-												href={item.pdf_url}
-												target="_blank"
-												rel="noopener noreferrer"
-												download
+												href={`/api/recipes/${item.id}/pdf`}
+												download={`receita-${item.id}.pdf`}
 											>
 												<DownloadIcon className="size-3.5" />
 												Download
 											</a>
 										</Button>
-									) : null}
+									) : (
+										<span className="shrink-0 text-xs text-muted-foreground">
+											PDF não disponível
+										</span>
+									)}
 								</li>
 							))}
 						</ul>

@@ -67,34 +67,47 @@ export async function fetchPetVaccines(petId: string): Promise<PetVaccine[]> {
 	return (await res.json()) as PetVaccine[];
 }
 
+export async function fetchBreedsBySpecies(
+	speciesId: string,
+): Promise<PetOption[]> {
+	const { token } = await verifySession();
+
+	const id = speciesId.trim();
+	if (!id) return [];
+
+	const res = await backend(`/client/pets/breeds/${encodeURIComponent(id)}`, {
+		token,
+	});
+
+	if (!res.ok) return [];
+
+	const rows = (await res.json()) as { breed_id: string; name: string }[];
+
+	return rows.map((b) => ({ id: b.breed_id, name: b.name }));
+}
+
 export async function fetchPetOptions(): Promise<PetOptions> {
 	const { token } = await verifySession();
 
-	const [speciesRes, breedsRes, vaccinesRes] = await Promise.all([
+	const [speciesRes, vaccinesRes] = await Promise.all([
 		backend("/client/pets/species", { token }),
-		backend("/client/pets/breeds", { token }),
 		backend("/client/pets/vaccines", { token }),
 	]);
 
-	const [species, breeds, vaccines] = await Promise.all([
-		speciesRes.ok
-			? (
-					(await speciesRes.json()) as { species_id: string; name: string }[]
-				).map((s) => ({ id: s.species_id, name: s.name }))
-			: [],
-		breedsRes.ok
-			? ((await breedsRes.json()) as { breed_id: string; name: string }[]).map(
-					(b) => ({ id: b.breed_id, name: b.name }),
-				)
-			: [],
-		vaccinesRes.ok
-			? (
-					(await vaccinesRes.json()) as { vaccine_id: string; name: string }[]
-				).map((v) => ({ id: v.vaccine_id, name: v.name }))
-			: [],
-	]);
+	const species = speciesRes.ok
+		? (
+				(await speciesRes.json()) as { species_id: string; name: string }[]
+			).map((s) => ({ id: s.species_id, name: s.name }))
+		: [];
 
-	return { species, breeds, vaccines };
+	const vaccines = vaccinesRes.ok
+		? (
+				(await vaccinesRes.json()) as { vaccine_id: string; name: string }[]
+			).map((v) => ({ id: v.vaccine_id, name: v.name }))
+		: [];
+
+	/* Raças vêm de fetchBreedsBySpecies(speciesId) no cadastro */
+	return { species, breeds: [], vaccines };
 }
 
 export async function uploadPetImageAction(formData: FormData) {

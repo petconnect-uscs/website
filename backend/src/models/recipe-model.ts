@@ -18,6 +18,32 @@ async function findAllRecipes() {
   });
 }
 
+
+export type ClientRecipePdfRow = {
+  recipe_id: number;
+  pdf_url: string | null;
+};
+
+async function findClientRecipePdfByRecipeIdAndCpf(
+  recipeId: number,
+  clientCpf: string
+): Promise<ClientRecipePdfRow | null> {
+  const row = await prisma.recipe.findFirst({
+    where: {
+      recipe_id: recipeId,
+      client_cpf: clientCpf,
+      deleted_at: null,
+    },
+    select: { recipe_id: true, pdf_url: true },
+  });
+  if (!row) return null;
+  const url = row.pdf_url?.trim();
+  return {
+    recipe_id: row.recipe_id,
+    pdf_url: url && url.length > 0 ? url : null,
+  };
+}
+
 async function findRecipesByClientCpf(cpf: string): Promise<RecipeRowForClient[]> {
   const rows = await prisma.recipe.findMany({
     where: { client_cpf: cpf, deleted_at: null },
@@ -68,4 +94,10 @@ async function softDeleteRecipe(
   return { recipe_id: recipeId };
 }
 
-export { findAllRecipes, findRecipesByClientCpf, createRecipe, softDeleteRecipe };
+export {
+  findAllRecipes,
+  findRecipesByClientCpf,
+  findClientRecipePdfByRecipeIdAndCpf,
+  createRecipe,
+  softDeleteRecipe,
+};

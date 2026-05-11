@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { backend, readErrorMessage } from "@/lib/backend";
 import { verifySession } from "@/lib/dal";
+import type { DoctorAvailabilityResponse } from "@/app/actions/appointments";
 import { type AdminClientWithPets, fetchAdminClients } from "./admin-clients";
 import { type AdminDoctor, fetchAdminDoctors } from "./admin-doctors";
 
@@ -67,6 +68,35 @@ export type AdminAppointmentFormOptions = {
 	specialties: ApiSpecialtyOption[];
 	doctors: AdminDoctor[];
 };
+
+export async function fetchAdminDoctorAvailabilityAction(
+	doctorId: string,
+): Promise<DoctorAvailabilityResponse | { error: string }> {
+	const { token } = await verifySession();
+
+	if (!doctorId.trim()) {
+		return { error: "Doutor(a) não informado(a)." };
+	}
+
+	const res = await backend(
+		`/admin/doctor/${encodeURIComponent(doctorId)}/availability`,
+		{ token },
+	);
+
+	if (!res.ok) {
+		return {
+			error: await readErrorMessage(
+				res,
+				"Não foi possível carregar a disponibilidade do profissional.",
+			),
+		};
+	}
+
+	const data = (await res.json()) as DoctorAvailabilityResponse;
+	return {
+		booked_dates: Array.isArray(data.booked_dates) ? data.booked_dates : [],
+	};
+}
 
 export async function fetchAdminAppointmentFormOptions(): Promise<AdminAppointmentFormOptions> {
 	const { token } = await verifySession();

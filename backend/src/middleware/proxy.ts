@@ -22,6 +22,10 @@ const globalLimiter = rateLimit({
 
 /* Middleware API Key */
 function apiKeyMiddleware(req: Request, res: Response, next: NextFunction) {
+  if (req.method === "GET" && req.path.startsWith("/public/imgs/")) {
+    return next();
+  }
+
   const apiKey = req.header("X-API-Key");
 
   if (!apiKey || apiKey !== process.env.APP_API_KEY) {

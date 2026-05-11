@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 
 import { DownloadIcon } from "lucide-react";
 
@@ -17,7 +17,6 @@ export function FileUpload({
 }: FileUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const input = e.target;
@@ -71,12 +70,6 @@ export function FileUpload({
     }
   }
 
-  function handleLabelClick() {
-    if (fileInputRef.current) {
-      (fileInputRef.current as HTMLInputElement).click();
-    }
-  }
-
   return (
     <>
       <label
@@ -90,7 +83,6 @@ export function FileUpload({
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        onClick={handleLabelClick}
       >
         <DownloadIcon size={18} className="text-muted-foreground" />
 
@@ -126,7 +118,6 @@ export function FileUpload({
       </label>
 
       <input
-        ref={fileInputRef}
         id="file-upload"
         type="file"
         className="hidden"

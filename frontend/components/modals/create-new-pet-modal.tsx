@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { ChevronDownIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,9 @@ import { toast } from "sonner";
 
 import {
 	createPetAction,
+	fetchBreedsBySpecies,
 	uploadPetImageAction,
+	type PetOption,
 	type PetOptions,
 } from "@/app/actions/pets";
 import {
@@ -38,16 +40,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import { FileUpload } from "@/components/ui/file-upload";
-import {
-	type BreedSpecies,
-	getBreedSpecies,
-	translateBreedName,
-} from "@/lib/breed-translations";
-
-const SPECIES_TO_BREED: Record<string, BreedSpecies> = {
-	Cachorro: "dog",
-	Gato: "cat",
-};
+import { translateBreedName } from "@/lib/breed-translations";
 
 type CreateNewPetModalProps = {
 	closeModal: () => void;
@@ -57,6 +50,7 @@ type CreateNewPetModalProps = {
 
 type FormState = {
 	name: string;
+	species_id: string;
 	species_name: string;
 	breed_id: string;
 	sex: string;
@@ -69,6 +63,7 @@ type FormState = {
 
 const initialFormData: FormState = {
 	name: "",
+	species_id: "",
 	species_name: "",
 	breed_id: "",
 	sex: "",
@@ -88,13 +83,50 @@ export function CreateNewPetModal({
 	const [activeStep, setActiveStep] = useState(0);
 	const [datePickerOpen, setDatePickerOpen] = useState(false);
 	const [formData, setFormData] = useState<FormState>(initialFormData);
+	const [breedsForSpecies, setBreedsForSpecies] = useState<PetOption[]>([]);
+	const [breedsLoading, setBreedsLoading] = useState(false);
 	const [isPending, startTransition] = useTransition();
+
+	useEffect(() => {
+		if (!formData.species_id) {
+			setBreedsForSpecies([]);
+			return;
+		}
+
+		setBreedsForSpecies([]);
+
+		let cancelled = false;
+
+		(async () => {
+			setBreedsLoading(true);
+			try {
+				const breeds = await fetchBreedsBySpecies(formData.species_id);
+				if (!cancelled) setBreedsForSpecies(breeds);
+			} finally {
+				if (!cancelled) setBreedsLoading(false);
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [formData.species_id]);
 
 	function handleInputChange<K extends keyof FormState>(
 		field: K,
 		value: FormState[K],
 	) {
 		setFormData((prev) => ({ ...prev, [field]: value }));
+	}
+
+	function handleSpeciesChange(speciesId: string) {
+		const sp = options.species.find((s) => s.id === speciesId);
+		setFormData((prev) => ({
+			...prev,
+			species_id: speciesId,
+			breed_id: "",
+			species_name: sp?.name ?? "",
+		}));
 	}
 
 	function handleVaccineChange(
@@ -112,6 +144,7 @@ export function CreateNewPetModal({
 
 	function reset() {
 		setFormData(initialFormData);
+		setBreedsForSpecies([]);
 		setActiveStep(0);
 	}
 
@@ -143,6 +176,7 @@ export function CreateNewPetModal({
 
 			const result = await createPetAction({
 				name: formData.name.trim(),
+				species_id: formData.species_id || undefined,
 				species_name: formData.species_name || undefined,
 				breed_id: formData.breed_id || undefined,
 				sex: formData.sex || undefined,
@@ -201,51 +235,64 @@ export function CreateNewPetModal({
 							<div className="flex flex-col gap-3">
 								<Label>Espécie</Label>
 								<Select
-									value={formData.species_name}
-									onValueChange={(value) => {
-										handleInputChange("species_name", value);
-										handleInputChange("breed_id", "");
-									}}
+									value={formData.species_id || undefined}
+									onValueChange={handleSpeciesChange}
 								>
 									<SelectTrigger className="w-full">
 										<SelectValue placeholder="Selecionar" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="Cachorro">Cachorro</SelectItem>
-										<SelectItem value="Gato">Gato</SelectItem>
+										{options.species.length === 0 ? (
+											<SelectItem value="__no-species" disabled>
+												Nenhuma espécie cadastrada
+											</SelectItem>
+										) : (
+											options.species.map((s) => (
+												<SelectItem key={s.id} value={s.id}>
+													{s.name}
+												</SelectItem>
+											))
+										)}
 									</SelectContent>
 								</Select>
 							</div>
 							<div className="flex flex-col gap-3">
 								<Label>Raça</Label>
 								<Select
-									value={formData.breed_id}
+									key={formData.species_id || "no-species"}
+									value={formData.breed_id || undefined}
 									onValueChange={(value) =>
 										handleInputChange("breed_id", value)
 									}
-									disabled={!formData.species_name}
+									disabled={!formData.species_id || breedsLoading}
 								>
 									<SelectTrigger className="w-full">
 										<SelectValue
 											placeholder={
-												formData.species_name
-													? "Selecionar"
-													: "Selecione a espécie primeiro"
+												!formData.species_id
+													? "Selecione a espécie primeiro"
+													: breedsLoading
+														? "Carregando raças…"
+														: "Selecionar"
 											}
 										/>
 									</SelectTrigger>
 									<SelectContent>
-										{options.breeds
-											.filter((b) => {
-												const target = SPECIES_TO_BREED[formData.species_name];
-												if (!target) return true;
-												return getBreedSpecies(b.name) === target;
-											})
-											.map((b) => (
+										{breedsLoading ? (
+											<SelectItem value="__breeds-loading" disabled>
+												Carregando raças…
+											</SelectItem>
+										) : breedsForSpecies.length === 0 && formData.species_id ? (
+											<SelectItem value="__no-breeds" disabled>
+												Nenhuma raça cadastrada para esta espécie
+											</SelectItem>
+										) : (
+											breedsForSpecies.map((b) => (
 												<SelectItem key={b.id} value={b.id}>
 													{translateBreedName(b.name)}
 												</SelectItem>
-											))}
+											))
+										)}
 									</SelectContent>
 								</Select>
 							</div>
