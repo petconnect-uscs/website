@@ -29,7 +29,7 @@ export function RecipesSheet({ items }: RecipesSheetProps) {
 		<Sheet>
 			<SheetTrigger asChild>
 				<Button variant="outline" className="gap-2">
-					<FileTextIcon className="size-4" />
+					<FileTextIcon className="size-4 text-muted-foreground" />
 					Receitas
 				</Button>
 			</SheetTrigger>

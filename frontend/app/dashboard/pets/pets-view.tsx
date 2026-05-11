@@ -151,7 +151,7 @@ export function PetsView({
 						<div className="flex items-center justify-between">
 							<h1 className="relative text-2xl font-semibold">
 								Pets{" "}
-								<span className="absolute text-orange-500 text-xs">
+								<span className="absolute text-primary text-xs">
 									({pets.length})
 								</span>
 							</h1>
@@ -226,15 +226,11 @@ export function PetsView({
 									<div className="flex justify-between gap-1 mt-6 p-1">
 										<VaccinesSheet
 											petName={pet.name}
-											vaccines={
-												selectedPetId === pet.pet_id ? petVaccines : []
-											}
+											vaccines={selectedPetId === pet.pet_id ? petVaccines : []}
 											loading={
 												isVaccinesPending && selectedPetId === pet.pet_id
 											}
-											open={
-												isVaccinesOpen && selectedPetId === pet.pet_id
-											}
+											open={isVaccinesOpen && selectedPetId === pet.pet_id}
 											onOpen={() => handleOpenVaccines(pet)}
 											onOpenChange={(open) => {
 												if (!open && selectedPetId === pet.pet_id) {
@@ -289,16 +285,20 @@ export function PetsView({
 				closeModal={() => setIsOpen(false)}
 				options={options}
 			/>
-			<Dialog open={Boolean(petToDelete)} onOpenChange={(open) => !open && setPetToDelete(null)}>
+			<Dialog
+				open={Boolean(petToDelete)}
+				onOpenChange={(open) => !open && setPetToDelete(null)}
+			>
 				<DialogContent>
-					<DialogHeader>
+					<DialogHeader className="gap-2">
 						<DialogTitle>Confirmar exclusão</DialogTitle>
 						<DialogDescription>
 							Deseja excluir o pet{" "}
 							<span className="font-medium text-foreground">
 								{petToDelete?.name ?? ""}
 							</span>
-							? Esta ação pode ser desfeita apenas por suporte técnico.
+							? <br />
+							Esta ação é permanente e não pode ser desfeita.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
@@ -309,7 +309,11 @@ export function PetsView({
 						>
 							Cancelar
 						</Button>
-						<Button onClick={confirmDeletePet} disabled={isDeletePending}>
+						<Button
+							onClick={confirmDeletePet}
+							disabled={isDeletePending}
+							variant="destructive"
+						>
 							{isDeletePending ? "Excluindo..." : "Confirmar"}
 						</Button>
 					</DialogFooter>
