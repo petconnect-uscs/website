@@ -6,13 +6,14 @@ import { verifySession } from "@/lib/dal";
 export type AdminDoctor = {
 	doctor_id: string;
 	name: string;
+	specialty_id: string | null;
 	specialty_name: string | null;
 };
 
 type ApiAdminDoctor = {
 	doctor_id: string;
 	name: string;
-	specialty: { name: string } | null;
+	specialty: { specialty_id: string; name: string } | null;
 };
 
 export async function fetchAdminDoctors(): Promise<AdminDoctor[]> {
@@ -24,6 +25,7 @@ export async function fetchAdminDoctors(): Promise<AdminDoctor[]> {
 	return rows.map((row) => ({
 		doctor_id: row.doctor_id,
 		name: row.name,
+		specialty_id: row.specialty?.specialty_id ?? null,
 		specialty_name: row.specialty?.name ?? null,
 	}));
 }

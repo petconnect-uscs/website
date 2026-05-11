@@ -131,24 +131,15 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 	const doctorOptions = useMemo(() => {
 		if (isAdmin) {
 			if (!specialtyId) return adminOptions.doctors;
-			const specialtyName = adminOptions.specialties.find(
-				(s) => s.specialty_id === specialtyId,
-			)?.name;
 			return adminOptions.doctors.filter(
-				(doctor) => doctor.specialty_name === specialtyName,
+				(doctor) => doctor.specialty_id === specialtyId,
 			);
 		}
 		if (!specialtyId) return clientOptions.doctors;
 		return clientOptions.doctors.filter(
 			(doctor) => doctor.specialty_id === specialtyId,
 		);
-	}, [
-		adminOptions.doctors,
-		adminOptions.specialties,
-		clientOptions.doctors,
-		isAdmin,
-		specialtyId,
-	]);
+	}, [adminOptions.doctors, clientOptions.doctors, isAdmin, specialtyId]);
 
 	const specialties = isAdmin
 		? adminOptions.specialties
@@ -218,6 +209,12 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 	}, [isAdmin, doctorId]);
 
 	useEffect(() => {
+		if (!isAdmin || !doctorId) return;
+		const stillListed = doctorOptions.some((d) => d.doctor_id === doctorId);
+		if (!stillListed) setDoctorId("");
+	}, [isAdmin, doctorId, doctorOptions]);
+
+	useEffect(() => {
 		if (!selectedDate || isAdmin) return;
 		const key = localDayKey(selectedDate);
 		if (fullyBookedKeys.has(key)) {
@@ -264,16 +261,28 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 		const appointmentDate = buildAppointmentDate(selectedDate, selectedTime);
 
 		if (isAdmin) {
-			if (
-				!clientCpf ||
-				!petId ||
-				!specialtyId ||
-				!doctorId ||
-				!appointmentDate
-			) {
-				setError(
-					"Preencha tutor, pet, especialidade, doutor(a), data e horário.",
-				);
+			if (!clientCpf) {
+				setError("Selecione o tutor.");
+				return;
+			}
+			if (!petId) {
+				setError("Selecione o pet.");
+				return;
+			}
+			if (!specialtyId) {
+				setError("Selecione a especialidade.");
+				return;
+			}
+			if (!doctorId) {
+				setError("Selecione o doutor(a).");
+				return;
+			}
+			if (!selectedDate || !selectedTime) {
+				setError("Selecione a data e o horário.");
+				return;
+			}
+			if (!appointmentDate) {
+				setError("Data ou horário inválido. Escolha novamente o horário.");
 				return;
 			}
 
@@ -530,7 +539,18 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 							selected={selectedDate ?? undefined}
 							captionLayout="dropdown"
 							disabled={calendarDisabled}
-							onSelect={(date) => setSelectedDate(date ?? null)}
+							onSelect={(date) => {
+								if (!date) {
+									setSelectedDate(null);
+									return;
+								}
+								const normalized = new Date(
+									date.getFullYear(),
+									date.getMonth(),
+									date.getDate(),
+								);
+								setSelectedDate(normalized);
+							}}
 						/>
 					</div>
 
