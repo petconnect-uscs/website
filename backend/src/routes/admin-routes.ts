@@ -10,6 +10,7 @@ import {
   deleteClient,
   getAppointments,
   createAppointment,
+  cancelAppointment,
   getRecipes,
   getDoctors,
   getSpecialties,
@@ -41,6 +42,7 @@ router.post("/clients", createClient);
 router.delete("/clients/:cpf", deleteClient);
 router.get("/appointments", getAppointments);
 router.post("/appointments", createAppointment);
+router.patch("/appointments/:appointmentId/cancel", cancelAppointment);
 router.get("/recipes", getRecipes);
 router.post("/recipes/upload", upload.single("pdf"), uploadRecipePdf);
 router.post("/recipes", createRecipe);

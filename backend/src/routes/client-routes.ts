@@ -9,6 +9,7 @@ import {
   getRecipes,
   getRecipePdf,
   createAppointment,
+  cancelAppointment,
   getSpecialties,
   getDoctors,
   getDoctorAvailability,
@@ -29,6 +30,7 @@ router.get("/doctors/:doctorId/availability", getDoctorAvailability);
 router.get("/appointments", getAppointments);
 router.get("/appointments/history", getAppointmentHistory);
 router.post("/appointments", createAppointment);
+router.patch("/appointments/:appointmentId/cancel", cancelAppointment);
 router.get("/recipes/:recipeId/pdf", getRecipePdf);
 router.get("/recipes", getRecipes);
 

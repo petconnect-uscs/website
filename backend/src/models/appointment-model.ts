@@ -9,6 +9,11 @@ export type AppointmentRowForClient = {
   specialty_name: string | null;
 };
 
+export type ActiveAppointmentRow = {
+  appointment_id: number;
+  appointment_date: Date;
+};
+
 async function findAppointmentsByClientCpf(
   cpf: string
 ): Promise<AppointmentRowForClient[]> {
@@ -93,6 +98,32 @@ async function findAllAppointments() {
   });
 }
 
+async function findActiveAppointmentById(
+  appointmentId: number
+): Promise<ActiveAppointmentRow | null> {
+  return prisma.appointment.findFirst({
+    where: { appointment_id: appointmentId, deleted_at: null },
+    select: { appointment_id: true, appointment_date: true },
+  });
+}
+
+async function findActiveAppointmentByIdAndClientCpf(
+  appointmentId: number,
+  cpf: string
+): Promise<ActiveAppointmentRow | null> {
+  return prisma.appointment.findFirst({
+    where: {
+      appointment_id: appointmentId,
+      deleted_at: null,
+      pet: {
+        client_cpf: cpf,
+        deleted_at: null,
+      },
+    },
+    select: { appointment_id: true, appointment_date: true },
+  });
+}
+
 
 export type NewAppointmentData = {
   pet_id: string;
@@ -142,11 +173,26 @@ async function findDoctorAppointments(doctorId: string) {
   });
 }
 
+async function softDeleteAppointment(
+  appointmentId: number
+): Promise<{ appointment_id: number } | null> {
+  const result = await prisma.appointment.updateMany({
+    where: { appointment_id: appointmentId, deleted_at: null },
+    data: { deleted_at: new Date(), updated_at: new Date() },
+  });
+
+  if (result.count === 0) return null;
+  return { appointment_id: appointmentId };
+}
+
 export {
   findAppointmentsByClientCpf,
   findPastAppointmentsByClientCpf,
   findAllAppointments,
+  findActiveAppointmentById,
+  findActiveAppointmentByIdAndClientCpf,
   createAppointment,
   findBookedDatesByDoctor,
-  findDoctorAppointments
+  findDoctorAppointments,
+  softDeleteAppointment,
 };

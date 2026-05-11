@@ -18,6 +18,23 @@ function isUniqueConstraintViolation(err: unknown): boolean {
 	);
 }
 
+function parseAppointmentId(appointmentId: string | undefined): number {
+	const id = Number(appointmentId);
+	if (!Number.isInteger(id) || id < 1) {
+		throw new AppError("ID do agendamento inválido", 400);
+	}
+	return id;
+}
+
+function assertAppointmentCanBeCancelled(appointmentDate: Date) {
+	if (appointmentDate <= new Date()) {
+		throw new AppError(
+			"Não é possível cancelar um agendamento já concluído.",
+			409,
+		);
+	}
+}
+
 async function assertSpecialtyExistsForDoctor(specialtyId: string) {
 	const row = await prisma.specialty.findFirst({
 		where: { specialty_id: specialtyId, deleted_at: null },
@@ -152,6 +169,28 @@ async function createAppointmentForAdmin(
 		doctor_id,
 		specialty_id,
 	});
+}
+
+async function cancelAppointmentForAdmin(
+	appointmentIdParam: string | undefined,
+	adminId: string | undefined,
+) {
+	if (!adminId) throw new AppError("Não autenticado", 401);
+
+	const appointmentId = parseAppointmentId(appointmentIdParam);
+	const appointment =
+		await appointmentModel.findActiveAppointmentById(appointmentId);
+
+	if (!appointment) {
+		throw new AppError("Agendamento não encontrado", 404);
+	}
+
+	assertAppointmentCanBeCancelled(appointment.appointment_date);
+
+	const deleted = await appointmentModel.softDeleteAppointment(appointmentId);
+	if (!deleted) {
+		throw new AppError("Agendamento não encontrado", 404);
+	}
 }
 
 async function listRecipesForAdmin() {
@@ -444,6 +483,7 @@ export {
 	deleteClientByCpf,
 	listAppointmentsForAdmin,
 	createAppointmentForAdmin,
+	cancelAppointmentForAdmin,
 	listRecipesForAdmin,
 	listDoctorsForAdmin,
 	listSpecialtiesForAdmin,
