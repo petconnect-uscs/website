@@ -35,6 +35,13 @@ async function findClientByEmail(email: string): Promise<Client | null> {
 	return row ? toClient(row) : null;
 }
 
+async function findActiveClientByEmail(email: string): Promise<Client | null> {
+	const row = await prisma.client.findFirst({
+		where: { email, deleted_at: null },
+	});
+	return row ? toClient(row) : null;
+}
+
 async function findClientByCpf(cpf: string): Promise<Client | null> {
 	const row = await prisma.client.findUnique({
 		where: { cpf },
@@ -312,6 +319,7 @@ async function updateClientByCpf(
 
 export {
 	findClientByEmail,
+	findActiveClientByEmail,
 	findClientByCpf,
 	createClient,
 	findClientById,
