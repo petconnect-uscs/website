@@ -29,7 +29,7 @@ export function HistorySheet({ items }: HistorySheetProps) {
 		<Sheet>
 			<SheetTrigger asChild>
 				<Button variant="outline" className="gap-2">
-					<HistoryIcon className="size-4" />
+					<HistoryIcon className="size-4 text-muted-foreground" />
 					Histórico de Consultas
 				</Button>
 			</SheetTrigger>
@@ -57,10 +57,7 @@ export function HistorySheet({ items }: HistorySheetProps) {
 										<p>
 											Horário de Início:{" "}
 											<span className="text-foreground font-medium">
-												{format(
-													new Date(item.date.replace(" ", "T")),
-													"HH:mm",
-												)}
+												{format(new Date(item.date.replace(" ", "T")), "HH:mm")}
 											</span>
 										</p>
 										<p>

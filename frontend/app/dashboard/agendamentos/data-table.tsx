@@ -42,11 +42,13 @@ import { ArrowLeftIcon, ArrowRightIcon, Search } from "lucide-react";
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
+	children?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
+	children,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([
 		{ id: "data", desc: false },
@@ -121,6 +123,29 @@ export function DataTable<TData, TValue>({
 						</SelectContent>
 					</Select>
 				</div>
+
+				<div className="flex items-center gap-4">
+					{children}
+
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="icon"
+							onClick={() => table.previousPage()}
+							disabled={!table.getCanPreviousPage()}
+						>
+							<ArrowLeftIcon className="w-4 h-4" />
+						</Button>
+						<Button
+							variant="outline"
+							size="icon"
+							onClick={() => table.nextPage()}
+							disabled={!table.getCanNextPage()}
+						>
+							<ArrowRightIcon className="w-4 h-4" />
+						</Button>
+					</div>
+				</div>
 			</div>
 
 			<div className="overflow-hidden rounded-md border bg-background">
@@ -170,25 +195,6 @@ export function DataTable<TData, TValue>({
 						)}
 					</TableBody>
 				</Table>
-			</div>
-
-			<div className="flex items-center justify-end gap-2">
-				<Button
-					variant="outline"
-					size="icon"
-					onClick={() => table.previousPage()}
-					disabled={!table.getCanPreviousPage()}
-				>
-					<ArrowLeftIcon className="w-4 h-4" />
-				</Button>
-				<Button
-					variant="outline"
-					size="icon"
-					onClick={() => table.nextPage()}
-					disabled={!table.getCanNextPage()}
-				>
-					<ArrowRightIcon className="w-4 h-4" />
-				</Button>
 			</div>
 		</div>
 	);
