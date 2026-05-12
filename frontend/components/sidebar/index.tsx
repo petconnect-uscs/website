@@ -32,33 +32,33 @@ export function Sidebar({ user }: { user: AuthUser }) {
 	const pathname = usePathname();
 
 	const items: SidebarItem[] = [
-		{ icon: <HomeIcon size={25} />, name: "Início", path: "/dashboard" },
+		{ icon: <HomeIcon size={20} />, name: "Início", path: "/dashboard" },
 		{
-			icon: <CalendarIcon size={25} />,
+			icon: <CalendarIcon size={20} />,
 			name: "Agendamentos",
 			path: "/dashboard/agendamentos",
 		},
 		user.role === "admin"
 			? {
-					icon: <UserRoundIcon size={25} />,
+					icon: <UserRoundIcon size={20} />,
 					name: "Usuários",
 					path: "/dashboard/usuarios",
 				}
 			: {
-					icon: <PawPrintIcon size={25} fill="currentColor" />,
+					icon: <PawPrintIcon size={20} fill="currentColor" />,
 					name: "Pets",
 					path: "/dashboard/pets",
 				},
 	];
 
 	return (
-		<aside className="sticky top-0 w-80 h-screen border-r border-gray-200 flex flex-col justify-between bg-white">
+		<aside className="sticky top-0 w-68 h-screen border-r border-gray-200 flex flex-col justify-between bg-white">
 			<header className="p-4">
 				<Image src={logo} alt="Logo" width={42} />
 			</header>
 
 			<nav className="px-4 flex-grow mt-30">
-				<ul className="flex flex-col gap-5">
+				<ul className="flex flex-col gap-3">
 					{items.map((item) => {
 						const isActive =
 							item.path === "/dashboard"
@@ -79,7 +79,7 @@ export function Sidebar({ user }: { user: AuthUser }) {
 								>
 									<div className="relative z-1 flex items-center gap-[11px]">
 										{item.icon}
-										<span className="text-[18px] font-medium">{item.name}</span>
+										<span className="text-base font-medium">{item.name}</span>
 									</div>
 
 									<AnimatePresence>
@@ -103,7 +103,7 @@ export function Sidebar({ user }: { user: AuthUser }) {
 				</ul>
 			</nav>
 
-			<footer className="h-16 p-4 border-t border-gray-200 flex items-center justify-between">
+			<footer className="h-16 pl-4 py-4 pr-2.5 border-t border-gray-200 flex items-center justify-between">
 				<div className="flex items-center gap-1.5">
 					<p className="text-sm font-medium truncate">{user.name}</p>
 					{user.role === "admin" && (

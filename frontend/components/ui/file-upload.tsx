@@ -8,12 +8,16 @@ type FileUploadProps = {
   className?: string;
   multiple?: boolean;
   onFilesChange?: (files: File[]) => void;
+  accept?: string;
+  extensionsText?: string;
 };
 
 export function FileUpload({
   className,
   multiple = true,
   onFilesChange,
+  accept = ".jpg,.jpeg,.png,.mp4",
+  extensionsText = "Extensões aceitas: png, jpg, jpeg, webm",
 }: FileUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -98,7 +102,7 @@ export function FileUpload({
                     {file.name}
                   </h3>
                   <p className="text-xs leading-3 tracking-normal text-muted-foreground">
-                    Extensões aceitas: png, jpg, jpeg, webm
+                    {extensionsText}
                   </p>
                 </div>
               ))}
@@ -110,7 +114,7 @@ export function FileUpload({
                 <span className="underline cursor-pointer">clique aqui</span>
               </h3>
               <p className="text-xs leading-3 tracking-normal text-muted-foreground">
-                Extensões aceitas: png, jpg, jpeg, webm
+                {extensionsText}
               </p>
             </>
           )}
@@ -123,7 +127,7 @@ export function FileUpload({
         className="hidden"
         multiple={multiple}
         onChange={handleFileChange}
-        accept=".jpg,.jpeg,.png,.mp4"
+        accept={accept}
       />
     </>
   );
