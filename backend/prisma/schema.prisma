@@ -50,16 +50,30 @@ model breed {
 }
 
 model client {
-  cpf        String    @id @db.VarChar(15)
-  name       String    @db.VarChar(255)
-  birth_date DateTime  @db.Date
-  email      String    @unique @db.VarChar(255)
-  password   String    @db.VarChar(255)
-  created_at DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at DateTime  @default(now()) @db.Timestamptz(6)
-  deleted_at DateTime? @db.Timestamptz(6)
-  pet        pet[]
-  recipe     recipe[]
+  cpf                  String                 @id @db.VarChar(15)
+  name                 String                 @db.VarChar(255)
+  birth_date           DateTime               @db.Date
+  email                String                 @unique @db.VarChar(255)
+  password             String                 @db.VarChar(255)
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  deleted_at           DateTime?              @db.Timestamptz(6)
+  password_reset_token password_reset_token[]
+  pet                  pet[]
+  recipe               recipe[]
+}
+
+model password_reset_token {
+  reset_token_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  client_cpf     String    @db.VarChar(15)
+  token_hash     String    @unique @db.VarChar(64)
+  expires_at     DateTime  @db.Timestamptz(6)
+  used_at        DateTime? @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  client         client    @relation(fields: [client_cpf], references: [cpf], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([client_cpf])
+  @@index([expires_at])
 }
 
 model doctor {

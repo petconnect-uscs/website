@@ -1,7 +1,10 @@
+import { createHash, randomBytes } from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import * as clientModel from "@/models/client-model.ts";
 import * as adminModel from "@/models/admin-model.ts";
+import * as passwordResetTokenModel from "@/models/password-reset-token-model.ts";
+import { sendPasswordResetEmail } from "@/services/email-service.ts";
 
 export class AppError extends Error {
   statusCode: number;
@@ -13,6 +16,9 @@ export class AppError extends Error {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const PASSWORD_RESET_MESSAGE =
+  "Se o e-mail estiver cadastrado, enviaremos instruções para redefinir a senha.";
+const MIN_PASSWORD_LENGTH = 8;
 
 type TokenPayload =
   | { cpf: string; role: "client" }
@@ -30,6 +36,42 @@ function createToken(payload: TokenPayload) {
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: "7d",
   });
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function createTokenHash(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function getPasswordResetTtlMinutes() {
+  const ttl = Number(process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES ?? 30);
+
+  if (!Number.isInteger(ttl) || ttl < 1 || ttl > 120) {
+    throw new AppError(
+      "Configuração PASSWORD_RESET_TOKEN_TTL_MINUTES inválida no servidor.",
+      500,
+    );
+  }
+
+  return ttl;
+}
+
+function buildPasswordResetUrl(token: string) {
+  const baseUrl = process.env.PASSWORD_RESET_URL?.trim();
+  if (!baseUrl) {
+    throw new AppError("Configuração PASSWORD_RESET_URL ausente no servidor.", 500);
+  }
+
+  try {
+    const url = new URL(baseUrl);
+    url.searchParams.set("token", token);
+    return url.toString();
+  } catch {
+    throw new AppError("Configuração PASSWORD_RESET_URL inválida no servidor.", 500);
+  }
 }
 
 async function registerClient(payload: {
@@ -119,6 +161,86 @@ async function login(payload: {
   throw new AppError("Usuário ou senha incorretos.", 401);
 }
 
+async function requestPasswordReset(payload: {
+  email?: string;
+} = {}): Promise<{ message: string }> {
+  const email = payload.email?.trim();
+
+  if (!email) {
+    throw new AppError("E-mail é obrigatório.", 400);
+  }
+
+  if (!isValidEmail(email)) {
+    throw new AppError("E-mail inválido.", 400);
+  }
+
+  const client = await clientModel.findActiveClientByEmail(email);
+  if (!client) {
+    return { message: PASSWORD_RESET_MESSAGE };
+  }
+
+  const ttlMinutes = getPasswordResetTtlMinutes();
+  const token = randomBytes(32).toString("hex");
+  const tokenHash = createTokenHash(token);
+  const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+
+  await passwordResetTokenModel.createPasswordResetToken({
+    clientCpf: client.cpf,
+    tokenHash,
+    expiresAt,
+  });
+
+  await sendPasswordResetEmail({
+    to: client.email,
+    name: client.name,
+    resetUrl: buildPasswordResetUrl(token),
+    expiresInMinutes: ttlMinutes,
+  });
+
+  return { message: PASSWORD_RESET_MESSAGE };
+}
+
+async function resetPassword(payload: {
+  token?: string;
+  password?: string;
+  password_confirm?: string;
+} = {}): Promise<{ message: string }> {
+  const token = payload.token?.trim();
+  const password = payload.password ?? "";
+  const passwordConfirm = payload.password_confirm ?? "";
+
+  if (!token) {
+    throw new AppError("Token de recuperação é obrigatório.", 400);
+  }
+
+  if (!password || !passwordConfirm) {
+    throw new AppError("Nova senha e confirmação são obrigatórias.", 400);
+  }
+
+  if (password !== passwordConfirm) {
+    throw new AppError("As senhas não coincidem.", 400);
+  }
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    throw new AppError(
+      `A nova senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`,
+      400,
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const result = await passwordResetTokenModel.resetClientPasswordWithToken({
+    tokenHash: createTokenHash(token),
+    passwordHash,
+  });
+
+  if (result !== "updated") {
+    throw new AppError("Token inválido ou expirado.", 400);
+  }
+
+  return { message: "Senha alterada com sucesso." };
+}
+
 async function getAuthenticatedUser(userFromToken: {
   cpf?: string;
   admin_id?: string;
@@ -157,4 +279,10 @@ async function getAuthenticatedUser(userFromToken: {
   throw new AppError("Tipo de usuário inválido no token.", 401);
 }
 
-export { registerClient, login, getAuthenticatedUser };
+export {
+  registerClient,
+  login,
+  requestPasswordReset,
+  resetPassword,
+  getAuthenticatedUser,
+};
