@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ChevronsUpDown, Check, PlusIcon } from "lucide-react";
+import { Loader2, ChevronDown, Check, PlusIcon } from "lucide-react";
 
 import type { AdminClientWithPets } from "@/app/actions/admin-clients";
 import type { AdminDoctor } from "@/app/actions/admin-doctors";
@@ -144,98 +144,105 @@ export function UploadRecipeModal({
 					{/* Doutor */}
 					<div className="space-y-2">
 						<label className="text-sm font-medium text-foreground">Doutor</label>
-						<Select
-							value={selectedDoctorId}
-							onValueChange={setSelectedDoctorId}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Selecionar Doutor" />
-							</SelectTrigger>
-							<SelectContent>
-								{doctors.map((doctor) => (
-									<SelectItem key={doctor.doctor_id} value={doctor.doctor_id}>
-										{doctor.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						<div className="pt-2">
+							<Select
+								value={selectedDoctorId}
+								onValueChange={setSelectedDoctorId}
+							>
+								<SelectTrigger className="w-full">
+									<SelectValue placeholder="Selecionar" />
+								</SelectTrigger>
+								<SelectContent>
+									{doctors.map((doctor) => (
+										<SelectItem key={doctor.doctor_id} value={doctor.doctor_id}>
+											{doctor.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+
 					</div>
 
 					{/* Tutor */}
 					<div className="space-y-2">
 						<label className="text-sm font-medium text-foreground">Tutor</label>
-						<Popover open={isClientOpen} onOpenChange={setIsClientOpen}>
-							<PopoverTrigger asChild>
-								<Button
-									variant="outline"
-									role="combobox"
-									aria-expanded={isClientOpen}
-									className="w-full justify-between font-normal"
+						<div className="pt-2">
+							<Popover open={isClientOpen} onOpenChange={setIsClientOpen} modal={true}>
+								<PopoverTrigger asChild>
+									<Button
+										variant="outline"
+										role="combobox"
+										aria-expanded={isClientOpen}
+										className="w-full justify-between font-normal"
+									>
+										{selectedClient ? selectedClient.name : "Selecionar Tutor"}
+										<ChevronDown className={`ml-2 h-4 w-4 shrink-0 opacity-50 transition-transform duration-200 ${isClientOpen ? "rotate-180" : ""}`} />
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent
+									className="w-[var(--radix-popover-trigger-width)] p-0"
+									align="start"
 								>
-									{selectedClient ? selectedClient.name : "Selecionar Tutor"}
-									<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent
-								className="w-[var(--radix-popover-trigger-width)] p-0"
-								align="start"
-							>
-								<div className="p-2 border-b">
-									<Input
-										placeholder="Pesquisar tutor..."
-										value={searchClient}
-										onChange={(e) => setSearchClient(e.target.value)}
-										className="h-8"
-									/>
-								</div>
-								<div className="max-h-60 overflow-y-auto p-1">
-									{filteredClients.length === 0 ? (
-										<p className="p-2 text-sm text-muted-foreground text-center">
-											Nenhum tutor encontrado.
-										</p>
-									) : (
-										filteredClients.map((client) => (
-											<div
-												key={client.cpf}
-												className="flex items-center justify-between cursor-pointer hover:bg-neutral-100 rounded px-2 py-1.5 text-sm"
-												onClick={() => {
-													setSelectedCpf(client.cpf);
-													setSelectedPetId("");
-													setIsClientOpen(false);
-													setSearchClient("");
-												}}
-											>
-												<span>{client.name}</span>
-												{selectedCpf === client.cpf && (
-													<Check className="w-4 h-4 text-primary" />
-												)}
-											</div>
-										))
-									)}
-								</div>
-							</PopoverContent>
-						</Popover>
+									<div className="p-2 border-b">
+										<Input
+											placeholder="Pesquisar tutor..."
+											value={searchClient}
+											onChange={(e) => setSearchClient(e.target.value)}
+											className="h-8"
+										/>
+									</div>
+									<div className="max-h-60 overflow-y-auto p-1">
+										{filteredClients.length === 0 ? (
+											<p className="p-2 text-sm text-muted-foreground text-center">
+												Nenhum tutor encontrado.
+											</p>
+										) : (
+											filteredClients.map((client) => (
+												<div
+													key={client.cpf}
+													className="flex items-center justify-between cursor-pointer hover:bg-neutral-100 rounded px-2 py-1.5 text-sm"
+													onClick={() => {
+														setSelectedCpf(client.cpf);
+														setSelectedPetId("");
+														setIsClientOpen(false);
+														setSearchClient("");
+													}}
+												>
+													<span>{client.name}</span>
+													{selectedCpf === client.cpf && (
+														<Check className="w-4 h-4 text-primary" />
+													)}
+												</div>
+											))
+										)}
+									</div>
+								</PopoverContent>
+							</Popover>
+						</div>
 					</div>
 
 					{/* Pet */}
 					<div className="space-y-2">
 						<label className="text-sm font-medium text-foreground">Pet</label>
-						<Select
-							value={selectedPetId}
-							onValueChange={setSelectedPetId}
-							disabled={!selectedCpf || pets.length === 0}
-						>
-							<SelectTrigger>
-								<SelectValue placeholder="Selecionar Pet" />
-							</SelectTrigger>
-							<SelectContent>
-								{pets.map((pet) => (
-									<SelectItem key={pet.pet_id} value={pet.pet_id}>
-										{pet.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						<div className="pt-2">
+							<Select
+								value={selectedPetId}
+								onValueChange={setSelectedPetId}
+								disabled={!selectedCpf || pets.length === 0}
+							>
+								<SelectTrigger className="w-full [&>svg]:transition-transform [&>svg]:duration-200 data-[state=open]:[&>svg]:rotate-180">
+									<SelectValue placeholder="Selecionar Pet" />
+								</SelectTrigger>
+								<SelectContent>
+									{pets.map((pet) => (
+										<SelectItem key={pet.pet_id} value={pet.pet_id}>
+											{pet.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					</div>
 
 					{/* Arquivo */}
@@ -262,7 +269,7 @@ export function UploadRecipeModal({
 					<Button
 						onClick={handleSubmit}
 						disabled={isSubmitting}
-						className="bg-orange-500 hover:bg-orange-600 text-white"
+						className="bg-primary hover:bg-primary/90 text-white"
 					>
 						{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 						Continuar
