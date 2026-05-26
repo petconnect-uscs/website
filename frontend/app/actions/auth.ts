@@ -30,12 +30,19 @@ async function consumeAuthResponse(
 ): Promise<{ failure?: AuthFormState; token?: string }> {
 	if (!res.ok) {
 		const backendMessage = await readErrorMessage(res, "");
+		const debugDetails = `status=${res.status} content-type=${res.headers.get("content-type") ?? "unknown"} url=${res.url}`;
 
 		if (backendMessage) {
-			return { failure: { error: `Não foi possível ${action}: ${backendMessage}` } };
+			return {
+				failure: {
+					error: `Não foi possível ${action}: ${backendMessage} (${debugDetails})`,
+				},
+			};
 		}
 
-		return { failure: { error: defaultAuthError(res.status, action) } };
+		return {
+			failure: { error: `${defaultAuthError(res.status, action)} (${debugDetails})` },
+		};
 	}
 
 	const data = (await res
