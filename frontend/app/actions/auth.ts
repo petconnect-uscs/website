@@ -12,8 +12,20 @@ type TokenResponse = { token: string };
 type AuthAction = "fazer login" | "criar a conta";
 
 function defaultAuthError(status: number, action: AuthAction): string {
+	if (status === 400 || status === 422) {
+		return `Não foi possível ${action}. Verifique os dados informados.`;
+	}
+	if (status === 401 || status === 403) {
+		return "Não autorizado. Verifique suas credenciais e tente novamente.";
+	}
+	if (status === 404) {
+		return "Serviço de autenticação indisponível no momento.";
+	}
 	if (status >= 500) {
 		return "Erro no servidor. Tente novamente em alguns minutos.";
+	}
+	if (status === 502 || status === 503) {
+		return "Serviço temporariamente indisponível. Tente novamente em instantes.";
 	}
 	if (status === 429) {
 		return "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.";
@@ -30,19 +42,19 @@ async function consumeAuthResponse(
 ): Promise<{ failure?: AuthFormState; token?: string }> {
 	if (!res.ok) {
 		const backendMessage = await readErrorMessage(res, "");
-		const debugDetails = `status=${res.status} content-type=${res.headers.get("content-type") ?? "unknown"} url=${res.url}`;
+		const showBackendMessage =
+			Boolean(backendMessage) &&
+			[400, 401, 403, 409, 422, 429].includes(res.status);
 
-		if (backendMessage) {
+		if (showBackendMessage) {
 			return {
 				failure: {
-					error: `Não foi possível ${action}: ${backendMessage} (${debugDetails})`,
+					error: `Não foi possível ${action}: ${backendMessage}`,
 				},
 			};
 		}
 
-		return {
-			failure: { error: `${defaultAuthError(res.status, action)} (${debugDetails})` },
-		};
+		return { failure: { error: defaultAuthError(res.status, action) } };
 	}
 
 	const data = (await res
