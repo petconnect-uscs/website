@@ -35,7 +35,7 @@ export function backend(path: string, options: BackendOptions = {}) {
 
 export async function readErrorMessage(res: Response, fallback: string) {
 	try {
-		const data = await res.json();
+		const data = await res.clone().json();
 
 		if (
 			data &&
@@ -45,7 +45,21 @@ export async function readErrorMessage(res: Response, fallback: string) {
 		) {
 			return (data as { error: string }).error;
 		}
-	} catch {}
+	} catch {
+		
+	}
+
+	try {
+		const text = (await res.clone().text()).trim();
+		if (!text) return fallback;
+
+
+		if (/^\s*</.test(text)) return fallback;
+
+		return text.length > 300 ? `${text.slice(0, 300)}…` : text;
+	} catch {
+		
+	}
 
 	return fallback;
 }
