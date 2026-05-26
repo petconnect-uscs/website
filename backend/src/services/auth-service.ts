@@ -42,6 +42,44 @@ function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function normalizeCpf(cpf: string) {
+  return cpf.replace(/\D/g, "");
+}
+
+function isValidCpf(cpf: string) {
+  const digits = normalizeCpf(cpf);
+
+  if (digits.length !== 11) {
+    return false;
+  }
+
+  if (/^(\d)\1{10}$/.test(digits)) {
+    return false;
+  }
+
+  const calcCheckDigit = (slice: string, weights: number[]) => {
+    const sum = slice
+      .split("")
+      .reduce((acc, digit, index) => acc + Number(digit) * weights[index], 0);
+    const remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  };
+
+  const firstDigit = calcCheckDigit(digits.slice(0, 9), [10, 9, 8, 7, 6, 5, 4, 3, 2]);
+  if (firstDigit !== Number(digits[9])) {
+    return false;
+  }
+
+  const secondDigit = calcCheckDigit(digits.slice(0, 10), [
+    11, 10, 9, 8, 7, 6, 5, 4, 3, 2,
+  ]);
+  if (secondDigit !== Number(digits[10])) {
+    return false;
+  }
+
+  return true;
+}
+
 function createTokenHash(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -87,12 +125,17 @@ async function registerClient(payload: {
     throw new AppError("Nome, email, CPF e senha são obrigatórios.", 400);
   }
 
+  const normalizedCpf = normalizeCpf(cpf);
+  if (!isValidCpf(normalizedCpf)) {
+    throw new AppError("CPF inválido.", 400);
+  }
+
   const existingByEmail = await clientModel.findClientByEmail(email);
   if (existingByEmail) {
     throw new AppError("E-mail já cadastrado.", 409);
   }
 
-  const existingByCpf = await clientModel.findClientByCpf(cpf);
+  const existingByCpf = await clientModel.findClientByCpf(normalizedCpf);
   if (existingByCpf) {
     throw new AppError("CPF já cadastrado.", 409);
   }
@@ -100,7 +143,7 @@ async function registerClient(payload: {
   const passwordHash = await bcrypt.hash(password, 10);
 
   const client = await clientModel.createClient({
-    cpf,
+    cpf: normalizedCpf,
     name,
     email,
     birth_date: birth_date ?? null,
