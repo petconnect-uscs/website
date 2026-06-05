@@ -117,8 +117,8 @@ export function AgendamentosTable({ appointments }: Props) {
 
 	return (
 		<div className="space-y-4">
-			<div className="flex items-center gap-1.5">
-				<InputGroup className="max-w-[360px]">
+		<div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full">
+				<InputGroup className="w-full sm:w-auto sm:max-w-[360px] flex-1">
 					<InputGroupAddon>
 						<Search className="size-3.5" />
 					</InputGroupAddon>

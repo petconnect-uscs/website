@@ -160,18 +160,18 @@ export function PetsView({
 								Cadastrar
 							</Button>
 						</div>
-						<div className="grid grid-cols-4 gap-3">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
 							{pets.map((pet) => (
 								<div
 									key={pet.pet_id}
-									className="flex flex-col rounded-[10px] border"
+									className="flex flex-col rounded-[10px] border bg-white"
 								>
 									<PetCoverImage
 										name={pet.name}
 										imageUrl={pet.image_url}
 										breedName={pet.breed_name}
 									/>
-									<div className="grid grid-cols-2 w-[80%] gap-y-4 mt-4 ml-4">
+									<div className="grid grid-cols-2 w-[90%] gap-y-4 mt-4 ml-4">
 										<div className="flex flex-col ">
 											<span className="text-xs text-muted-foreground font-medium">
 												Nome

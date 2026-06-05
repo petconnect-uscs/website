@@ -26,6 +26,14 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import {
+	Drawer,
+	DrawerContent,
+	DrawerDescription,
+	DrawerHeader,
+	DrawerTitle,
+} from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 import { getBreedImage, translateBreedName } from "@/lib/breed-translations";
 
 import { buildColumns } from "./columns";
@@ -83,6 +91,7 @@ type Props = {
 };
 
 export function UsuariosView({ clients }: Props) {
+	const isMobile = useIsMobile();
 	const router = useRouter();
 	const [activeCpf, setActiveCpf] = useState<string | null>(null);
 	const [cpfToDelete, setCpfToDelete] = useState<string | null>(null);
@@ -121,36 +130,8 @@ export function UsuariosView({ clients }: Props) {
 		});
 	}
 
-	return (
-		<>
-			<DataTable
-				columns={columns}
-				data={clients}
-				onRowClick={(row) => setActiveCpf(row.cpf)}
-				isRowActive={(row) => row.cpf === activeCpf}
-			/>
-
-			<Sheet
-				open={Boolean(activeClient)}
-				onOpenChange={(open) => {
-					if (!open) closeDrawer();
-				}}
-			>
-				<SheetContent>
-					{activeClient ? (
-						<>
-							<SheetHeader>
-								<SheetTitle className="truncate">
-									{activeClient.name}
-								</SheetTitle>
-								<SheetDescription className="truncate">
-									{activeClient.email} <br />
-									{formatCpfDisplay(activeClient.cpf)} <br />
-									{formatDateBr(activeClient.birth_date)}
-								</SheetDescription>
-							</SheetHeader>
-
-							<div className="flex flex-col gap-2 px-4">
+	const userContent = activeClient ? (
+		<div className="flex flex-col gap-2 px-4">
 								<h1 className="text-lg font-semibold text-foreground tracking-tight flex items-baseline gap-1">
 									Pets
 									{activeClient.pets.length > 0 && (
@@ -182,7 +163,7 @@ export function UsuariosView({ clients }: Props) {
 													className="w-full h-[170px] object-cover rounded-t-lg rounded-b-none"
 													alt={p.name}
 												/>
-												<div className="grid grid-cols-2 w-[80%] gap-y-4 mt-4 ml-4 mb-4">
+												<div className="grid grid-cols-2 w-[90%] gap-x-2 gap-y-4 mt-4 ml-4 mb-4">
 													<div className="flex flex-col">
 														<span className="text-xs text-muted-foreground font-medium">
 															Nome
@@ -238,11 +219,69 @@ export function UsuariosView({ clients }: Props) {
 										))}
 									</ul>
 								)}
-							</div>
-						</>
-					) : null}
-				</SheetContent>
-			</Sheet>
+					</div>
+	) : null;
+
+	const drawerOrSheet = isMobile ? (
+		<Drawer
+			open={Boolean(activeClient)}
+			onOpenChange={(open) => {
+				if (!open) closeDrawer();
+			}}
+		>
+			<DrawerContent className="max-h-[90vh]">
+				{activeClient ? (
+					<>
+						<DrawerHeader className="text-left">
+							<DrawerTitle className="truncate">{activeClient.name}</DrawerTitle>
+							<DrawerDescription className="truncate">
+								{activeClient.email} <br />
+								{formatCpfDisplay(activeClient.cpf)} <br />
+								{formatDateBr(activeClient.birth_date)}
+							</DrawerDescription>
+						</DrawerHeader>
+						<div className="overflow-y-auto pb-4">
+							{userContent}
+						</div>
+					</>
+				) : null}
+			</DrawerContent>
+		</Drawer>
+	) : (
+		<Sheet
+			open={Boolean(activeClient)}
+			onOpenChange={(open) => {
+				if (!open) closeDrawer();
+			}}
+		>
+			<SheetContent className="overflow-y-auto">
+				{activeClient ? (
+					<>
+						<SheetHeader>
+							<SheetTitle className="truncate">{activeClient.name}</SheetTitle>
+							<SheetDescription className="truncate">
+								{activeClient.email} <br />
+								{formatCpfDisplay(activeClient.cpf)} <br />
+								{formatDateBr(activeClient.birth_date)}
+							</SheetDescription>
+						</SheetHeader>
+						{userContent}
+					</>
+				) : null}
+			</SheetContent>
+		</Sheet>
+	);
+
+	return (
+		<>
+			<DataTable
+				columns={columns}
+				data={clients}
+				onRowClick={(row) => setActiveCpf(row.cpf)}
+				isRowActive={(row) => row.cpf === activeCpf}
+			/>
+
+			{drawerOrSheet}
 
 			<Dialog
 				open={Boolean(cpfToDelete)}
@@ -250,9 +289,9 @@ export function UsuariosView({ clients }: Props) {
 					if (!open && !isDeleting) setCpfToDelete(null);
 				}}
 			>
-				<DialogContent showCloseButton={!isDeleting}>
-					<DialogHeader className="gap-2">
-						<DialogTitle>Excluir usuário permanentemente?</DialogTitle>
+				<DialogContent showCloseButton={!isDeleting} className="w-[92vw] rounded-xl sm:max-w-md">
+					<DialogHeader className="gap-2 pr-6">
+						<DialogTitle className="leading-snug">Excluir usuário permanentemente?</DialogTitle>
 						<DialogDescription>
 							Tem certeza que deseja excluir{" "}
 							<span className="text-foreground">{clientToDelete?.name}</span>?{" "}

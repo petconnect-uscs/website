@@ -44,6 +44,17 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import {
 	Select,
 	SelectContent,
 	SelectItem,
@@ -83,6 +94,7 @@ function slotTimestampMs(date: Date | null, time: string): number | null {
 }
 
 export function AppointmentSheet(props: AppointmentSheetProps) {
+	const isMobile = useIsMobile();
 	const isAdmin = props.mode === "admin";
 
 	const clientOptions: AppointmentFormOptions = isAdmin
@@ -352,26 +364,8 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 		});
 	}
 
-	return (
-		<Sheet
-			open={open}
-			onOpenChange={(nextOpen) => {
-				setOpen(nextOpen);
-				if (!nextOpen) resetForm();
-			}}
-		>
-			<SheetTrigger asChild>
-				<Button className="shrink-0">
-					<PlusIcon className="w-4 h-4" />
-					Novo
-				</Button>
-			</SheetTrigger>
-			<SheetContent className={cn(isAdmin && "overflow-y-auto")}>
-				<SheetHeader>
-					<SheetTitle>Agendar consulta</SheetTitle>
-					<SheetDescription>Preencha os campos abaixo.</SheetDescription>
-				</SheetHeader>
-				<div className="grid flex-1 auto-rows-min gap-4 px-4">
+	const innerForm = (
+		<div className="grid flex-1 auto-rows-min gap-4 px-4">
 					{isAdmin ? (
 						<div className="flex flex-col gap-2.5">
 							<Label>Tutor</Label>
@@ -608,8 +602,67 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 					</ScrollArea>
 
 					{error ? <p className="text-sm text-destructive">{error}</p> : null}
-				</div>
+		</div>
+	);
 
+	if (isMobile) {
+		return (
+			<Drawer
+				open={open}
+				onOpenChange={(nextOpen) => {
+					setOpen(nextOpen);
+					if (!nextOpen) resetForm();
+				}}
+			>
+				<DrawerTrigger asChild>
+					<Button className="shrink-0">
+						<PlusIcon className="w-4 h-4" />
+						Novo
+					</Button>
+				</DrawerTrigger>
+				<DrawerContent className={cn(isAdmin && "max-h-[90vh]")}>
+					<DrawerHeader className="text-left">
+						<DrawerTitle>Agendar consulta</DrawerTitle>
+						<DrawerDescription>Preencha os campos abaixo.</DrawerDescription>
+					</DrawerHeader>
+					<ScrollArea className="overflow-y-auto max-h-[60vh] px-2">
+						{innerForm}
+					</ScrollArea>
+					<DrawerFooter>
+						<Button type="button" onClick={handleSubmit} disabled={isPending}>
+							{isPending ? "Agendando..." : "Agendar"}
+						</Button>
+						<DrawerClose asChild>
+							<Button variant="outline" disabled={isPending}>
+								Cancelar
+							</Button>
+						</DrawerClose>
+					</DrawerFooter>
+				</DrawerContent>
+			</Drawer>
+		);
+	}
+
+	return (
+		<Sheet
+			open={open}
+			onOpenChange={(nextOpen) => {
+				setOpen(nextOpen);
+				if (!nextOpen) resetForm();
+			}}
+		>
+			<SheetTrigger asChild>
+				<Button className="shrink-0">
+					<PlusIcon className="w-4 h-4" />
+					Novo
+				</Button>
+			</SheetTrigger>
+			<SheetContent className={cn(isAdmin && "overflow-y-auto")}>
+				<SheetHeader>
+					<SheetTitle>Agendar consulta</SheetTitle>
+					<SheetDescription>Preencha os campos abaixo.</SheetDescription>
+				</SheetHeader>
+				{innerForm}
 				<SheetFooter>
 					<Button type="button" onClick={handleSubmit} disabled={isPending}>
 						{isPending ? "Agendando..." : "Agendar"}

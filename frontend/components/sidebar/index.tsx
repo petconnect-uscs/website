@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
@@ -12,6 +13,7 @@ import {
 	PawPrintIcon,
 	UserRoundIcon,
 	EllipsisIcon,
+	MenuIcon,
 } from "lucide-react";
 
 import logo from "@/assets/logo.png";
@@ -20,6 +22,13 @@ import { cn } from "@/lib/utils";
 import type { AuthUser } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
 import { SettingsMenu } from "./settings-menu";
 
 type SidebarItem = {
@@ -28,7 +37,7 @@ type SidebarItem = {
 	path: string;
 };
 
-export function Sidebar({ user }: { user: AuthUser }) {
+export function SidebarContent({ user, onClickItem }: { user: AuthUser; onClickItem?: () => void }) {
 	const pathname = usePathname();
 
 	const items: SidebarItem[] = [
@@ -52,7 +61,7 @@ export function Sidebar({ user }: { user: AuthUser }) {
 	];
 
 	return (
-		<aside className="sticky top-0 w-68 h-screen border-r border-gray-200 flex flex-col justify-between bg-white">
+		<div className="flex flex-col flex-1 min-h-[calc(100dvh-1rem)] md:min-h-0 md:h-full justify-between bg-white">
 			<header className="p-4">
 				<Image src={logo} alt="Logo" width={42} />
 			</header>
@@ -70,6 +79,7 @@ export function Sidebar({ user }: { user: AuthUser }) {
 							<li key={item.name}>
 								<Link
 									href={item.path}
+									onClick={onClickItem}
 									className={cn(
 										"relative w-full flex py-1.5 px-2.5 rounded-[6px] items-center",
 										isActive
@@ -122,6 +132,38 @@ export function Sidebar({ user }: { user: AuthUser }) {
 					</Button>
 				</SettingsMenu>
 			</footer>
-		</aside>
+		</div>
+	);
+}
+
+export function Sidebar({ user }: { user: AuthUser }) {
+	const [open, setOpen] = useState(false);
+
+	return (
+		<>
+			{/* Menu Desktop Clássico */}
+			<aside className="hidden md:flex sticky top-0 w-68 h-screen border-r border-gray-200 flex-col bg-white">
+				<SidebarContent user={user} />
+			</aside>
+
+			{/* Cabeçalho e Menu Mobile */}
+			<header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-50 w-full">
+				<Image src={logo} alt="Logo" width={36} />
+
+				<Sheet open={open} onOpenChange={setOpen}>
+					<SheetTrigger asChild>
+						<Button variant="ghost" size="icon" aria-label="Menu">
+							<MenuIcon className="size-6 text-foreground" />
+						</Button>
+					</SheetTrigger>
+					<SheetContent side="left" className="p-0 w-68 border-none flex flex-col bg-white">
+						<SheetHeader className="sr-only">
+							<SheetTitle>Menu de Navegação</SheetTitle>
+						</SheetHeader>
+						<SidebarContent user={user} onClickItem={() => setOpen(false)} />
+					</SheetContent>
+				</Sheet>
+			</header>
+		</>
 	);
 }
