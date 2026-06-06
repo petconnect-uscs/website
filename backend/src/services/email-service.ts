@@ -74,7 +74,7 @@ async function sendPasswordResetEmail(data: PasswordResetEmailData) {
 	await transporter.sendMail({
 		from: config.from,
 		to: data.to,
-		subject: "Recuperação de senha - Connect Pet",
+		subject: "Recuperação de senha - Pet Connect",
 		text: [
 			`Olá, ${data.name}.`,
 			"",
