@@ -4,7 +4,7 @@ import logo from "@/assets/logo.png";
 
 type AuthLayoutProps = {
 	title: string;
-	description: string;
+	description: React.ReactNode;
 	children: React.ReactNode;
 };
 
@@ -20,8 +20,10 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
 						height={100}
 						className="w-14 mb-4"
 					/>
-					<h1 className="text-4xl font-semibold tracking-tight">{title}</h1>
-					<p className="text-muted-foreground">{description}</p>
+					<h1 className="text-4xl font-semibold tracking-tight text-black">
+						{title}
+					</h1>
+					<p className="text-muted-foreground text-balance">{description}</p>
 				</div>
 
 				{children}

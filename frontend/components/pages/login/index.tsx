@@ -41,16 +41,15 @@ export function Login() {
 					/>
 				</div>
 				<div className="flex flex-col gap-3">
-					{/* <div className="flex items-center justify-between">
+					<div className="flex items-center justify-between">
 						<Label htmlFor="senha">Senha</Label>
 						<Link
-							href="/forget"
+							href="/senha"
 							className="text-xs text-foreground/60 transition-colors hover:text-foreground"
 						>
 							Esqueceu a senha?
 						</Link>
-					</div> */}
-					<Label htmlFor="senha">Senha</Label>
+					</div>
 					<PasswordInput
 						id="senha"
 						name="password"

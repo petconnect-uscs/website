@@ -1,55 +1,61 @@
-import express, { type NextFunction, type Request, type Response } from "express";
+import express, {
+	type NextFunction,
+	type Request,
+	type Response,
+} from "express";
 import cors, { type CorsOptions } from "cors";
 
 /* CORS */
 const corsOptions: CorsOptions = {
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
+	origin: "*",
+	methods: ["GET", "POST", "PUT", "DELETE"],
+	allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
 };
 
 /* Middleware API Key */
 function apiKeyMiddleware(req: Request, res: Response, next: NextFunction) {
-  if (req.method === "GET" && req.path.startsWith("/public/imgs/")) {
-    return next();
-  }
+	if (req.method === "GET" && req.path.startsWith("/public/imgs/")) {
+		return next();
+	}
 
-  const apiKey = req.header("X-API-Key");
+	const apiKey = req.header("X-API-Key");
 
-  if (!apiKey || apiKey !== process.env.APP_API_KEY) {
-    return res.status(401).json({
-      error: "API Key inválida ou ausente.",
-    });
-  }
+	if (!apiKey || apiKey !== process.env.APP_API_KEY) {
+		return res.status(401).json({
+			error: "API Key inválida ou ausente.",
+		});
+	}
 
-  next();
+	next();
 }
 
 /* Tratamento final de erros (Express error handler) */
 function errorHandler(
-  err: unknown,
-  _req: Request,
-  res: Response,
-  _next: NextFunction
+	err: unknown,
+	_req: Request,
+	res: Response,
+	_next: NextFunction,
 ) {
-  console.error(err);
-  
-  res.status(500).json({
-    error: err,
-  });
+	console.error(err);
+
+	const message =
+		err instanceof Error ? err.message : "Erro interno do servidor.";
+
+	res.status(500).json({
+		error: message,
+	});
 }
 
 function createProxy(app: express.Express) {
-  const proxy = express();
+	const proxy = express();
 
-  proxy.use(cors(corsOptions));
-  proxy.use(express.json());
-  proxy.use(apiKeyMiddleware);
-  proxy.use(app);
-  proxy.use(errorHandler);
+	proxy.use(cors(corsOptions));
+	proxy.use(express.json());
+	proxy.use(apiKeyMiddleware);
+	proxy.use(app);
+	proxy.use(errorHandler);
 
-  return proxy;
+	return proxy;
 }
 
 export { createProxy };
-
