@@ -2,6 +2,8 @@
 
 import { useActionState, useEffect, useState } from "react";
 
+import { ChevronDownIcon } from "lucide-react";
+
 import { Link } from "next-view-transitions";
 
 import { toast } from "sonner";
@@ -10,10 +12,16 @@ import { signupAction } from "@/app/actions/auth";
 import { AuthLayout } from "@/components/layouts/auth-layout";
 import { TermsModal } from "@/components/modals/terms-modal";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 
 function formatCpf(value: string) {
 	const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -30,6 +38,14 @@ function formatCpf(value: string) {
 	return `${parts[0]}.${parts[1]}.${parts[2]}-${parts[3]}`;
 }
 
+// Serialize to a local YYYY-MM-DD (avoids the UTC day-shift of toISOString()).
+function toDateValue(date: Date) {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const day = String(date.getDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
+}
+
 export function Cadastro() {
 	const [state, formAction, isPending] = useActionState(
 		signupAction,
@@ -39,6 +55,8 @@ export function Cadastro() {
 	const [acceptedTerms, setAcceptedTerms] = useState(false);
 	const [name, setName] = useState("");
 	const [cpf, setCpf] = useState("");
+	const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+	const [datePickerOpen, setDatePickerOpen] = useState(false);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -47,7 +65,10 @@ export function Cadastro() {
 	}, [state]);
 
 	return (
-		<AuthLayout title="Novo por aqui?" description="Crie sua conta">
+		<AuthLayout
+			title="Novo por aqui?"
+			description="Crie sua conta para continuar"
+		>
 			<form action={formAction} className="flex flex-col gap-6">
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="nome">Nome</Label>
@@ -90,6 +111,43 @@ export function Cadastro() {
 					/>
 				</div>
 				<div className="flex flex-col gap-2">
+					<Label htmlFor="nascimento">Data de nascimento</Label>
+					<input
+						type="hidden"
+						name="birth_date"
+						value={birthDate ? toDateValue(birthDate) : ""}
+					/>
+					<Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								type="button"
+								variant="outline"
+								id="nascimento"
+								className="w-full justify-between font-normal text-muted-foreground"
+							>
+								{birthDate
+									? birthDate.toLocaleDateString("pt-BR")
+									: "Selecionar"}
+								<ChevronDownIcon className="size-5 opacity-50" />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							className="w-auto overflow-hidden p-0"
+							align="start"
+						>
+							<Calendar
+								mode="single"
+								selected={birthDate}
+								captionLayout="dropdown"
+								onSelect={(date) => {
+									setBirthDate(date);
+									setDatePickerOpen(false);
+								}}
+							/>
+						</PopoverContent>
+					</Popover>
+				</div>
+				<div className="flex flex-col gap-2">
 					<Label htmlFor="senha">Senha</Label>
 					<PasswordInput
 						id="senha"
@@ -127,6 +185,7 @@ export function Cadastro() {
 						isPending ||
 						!name.trim() ||
 						!cpf.trim() ||
+						!birthDate ||
 						!email.trim() ||
 						!password ||
 						!acceptedTerms

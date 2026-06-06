@@ -19,7 +19,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Pet Connect",
+	title: {
+		default: "Pet Connect",
+		template: "%s · Pet Connect",
+	},
 	description: "O melhor jeito de administrar sua clínica.",
 	icons: {
 		icon: "/favicon.png",

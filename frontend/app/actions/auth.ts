@@ -105,11 +105,12 @@ export async function signupAction(
 ): Promise<AuthFormState> {
 	const name = String(formData.get("name") ?? "").trim();
 	const cpf = String(formData.get("cpf") ?? "").trim();
+	const birthDate = String(formData.get("birth_date") ?? "").trim();
 	const email = String(formData.get("email") ?? "").trim();
 	const password = String(formData.get("password") ?? "");
 	const acceptedTerms = formData.get("terms") === "on";
 
-	if (!name || !cpf || !email || !password) {
+	if (!name || !cpf || !birthDate || !email || !password) {
 		return { error: "Preencha todos os campos." };
 	}
 	if (!acceptedTerms) {
@@ -121,7 +122,7 @@ export async function signupAction(
 	try {
 		res = await backend("/auth/register", {
 			method: "POST",
-			body: JSON.stringify({ name, cpf, email, password }),
+			body: JSON.stringify({ name, cpf, birth_date: birthDate, email, password }),
 		});
 	} catch {
 		return { error: "Não foi possível conectar ao servidor." };

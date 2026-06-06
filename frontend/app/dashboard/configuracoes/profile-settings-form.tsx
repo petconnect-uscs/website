@@ -19,6 +19,12 @@ function formatDateBR(iso: string | null): string {
 	return `${d}/${m}/${y}`;
 }
 
+function formatCpf(cpf: string): string {
+	const digits = cpf.replace(/\D/g, "");
+	if (digits.length !== 11) return cpf;
+	return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+}
+
 export function ProfileSettingsForm({ profile }: { profile: ClientProfile }) {
 	const [state, formAction, isPending] = useActionState(
 		updateClientProfileAction,
@@ -47,7 +53,7 @@ export function ProfileSettingsForm({ profile }: { profile: ClientProfile }) {
 
 			<div className="grid gap-4 sm:grid-cols-2">
 				<div className="flex flex-col gap-2">
-					<Label htmlFor="name">Nome completo</Label>
+					<Label htmlFor="name">Nome</Label>
 					<Input
 						id="name"
 						name="name"
@@ -57,24 +63,18 @@ export function ProfileSettingsForm({ profile }: { profile: ClientProfile }) {
 				</div>
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="cpf_readonly">CPF</Label>
-					<Input
-						id="cpf_readonly"
-						readOnly
-						value={profile.cpf}
-						className="bg-muted/50"
-					/>
+					<Input id="cpf_readonly" disabled value={formatCpf(profile.cpf)} />
 				</div>
 				<div className="flex flex-col gap-2">
-					<Label htmlFor="email_readonly">E-mail</Label>
+					<Label htmlFor="email_readonly">Email</Label>
 					<Input id="email_readonly" disabled value={profile.email} />
 				</div>
 				<div className="flex flex-col gap-2">
 					<Label htmlFor="birth_readonly">Data de nascimento</Label>
 					<Input
 						id="birth_readonly"
-						readOnly
+						disabled
 						value={formatDateBR(profile.birth_date)}
-						className="bg-muted/50"
 					/>
 				</div>
 				<div className="flex flex-col gap-2">
