@@ -28,21 +28,23 @@ export function RecuperarSenha() {
 		return (
 			<AuthLayout
 				title="Verifique seu email"
-				description="Enviamos um link de recuperação"
-			>
-				<div className="flex flex-col gap-6">
-					<p className="text-sm text-muted-foreground">
-						Se{" "}
-						<span className="font-medium text-foreground">
+				description={
+					<>
+						Enviamos um link de recuperação para{" "}
+						<span className="font-medium text-black">
 							{email.trim() || "o e-mail informado"}
-						</span>{" "}
-						estiver cadastrado, enviamos um link para redefinir sua senha. O link
-						expira em alguns minutos.
-					</p>
-					<Button variant="outline" asChild>
-						<Link href="/">Voltar para o login</Link>
-					</Button>
-				</div>
+						</span>
+						.{" "}
+						<span className="block mt-2">
+							Se este email estiver cadastrado, enviaremos um link para
+							redefinir sua senha. O link expira em alguns minutos.
+						</span>
+					</>
+				}
+			>
+				<Button variant="outline" asChild>
+					<Link href="/">Voltar</Link>
+				</Button>
 			</AuthLayout>
 		);
 	}
