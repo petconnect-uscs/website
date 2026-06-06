@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Matcher } from "react-day-picker";
 import {
@@ -106,6 +106,7 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 		: { clients: [], specialties: [], doctors: [] };
 
 	const router = useRouter();
+	const sheetContentRef = useRef<HTMLDivElement>(null);
 	const [open, setOpen] = useState(false);
 
 	const [clientCpf, setClientCpf] = useState("");
@@ -366,242 +367,236 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 
 	const innerForm = (
 		<div className="grid flex-1 auto-rows-min gap-4 px-4">
-					{isAdmin ? (
-						<div className="flex flex-col gap-2.5">
-							<Label>Tutor</Label>
-							<Popover
-								open={clientPopoverOpen}
-								onOpenChange={setClientPopoverOpen}
+			{isAdmin ? (
+				<div className="flex flex-col gap-2.5">
+					<Label>Tutor</Label>
+					<Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
+						<PopoverTrigger asChild>
+							<Button
+								variant="outline"
+								role="combobox"
+								aria-expanded={clientPopoverOpen}
+								className="w-full justify-between font-normal hover:bg-transparent px-3 rounded-[10px]"
 							>
-								<PopoverTrigger asChild>
-									<Button
-										variant="outline"
-										role="combobox"
-										aria-expanded={clientPopoverOpen}
-										className="w-full justify-between font-normal hover:bg-transparent px-3 rounded-[10px]"
-									>
-										<span className="truncate">
-											{activeClient ? activeClient.name : "Selecionar"}
-										</span>
-										<ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-									</Button>
-								</PopoverTrigger>
-								<PopoverContent
-									className="w-[var(--radix-popover-trigger-width)] p-0 rounded-[10px]"
-									align="start"
-								>
-									<div className="flex items-center border-b px-3">
-										<SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-										<input
-											className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-											placeholder="Pesquisar tutor..."
-											value={clientSearch}
-											onChange={(e) => setClientSearch(e.target.value)}
-										/>
-									</div>
-									<ScrollArea className="h-[200px]">
-										{filteredClients.length === 0 ? (
-											<div className="py-6 text-center text-sm text-muted-foreground">
-												Nenhum tutor encontrado.
-											</div>
-										) : (
-											<div className="p-1">
-												{filteredClients.map((client) => (
-													<div
-														key={client.cpf}
-														className={cn(
-															"relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-															clientCpf === client.cpf
-																? "bg-muted font-medium"
-																: "",
-														)}
-														onClick={() => {
-															setClientCpf(client.cpf);
-															setPetId("");
-															setClientPopoverOpen(false);
-															setClientSearch("");
-														}}
-													>
-														<CheckIcon
-															className={cn(
-																"mr-2 h-4 w-4",
-																clientCpf === client.cpf
-																	? "opacity-100"
-																	: "opacity-0",
-															)}
-														/>
-														<span className="truncate">{client.name}</span>
-													</div>
-												))}
-											</div>
-										)}
-									</ScrollArea>
-								</PopoverContent>
-							</Popover>
-						</div>
-					) : null}
-
-					<div className="flex flex-col gap-2.5">
-						<Label>Pet</Label>
-						{isAdmin ? (
-							<Select
-								value={petId}
-								onValueChange={setPetId}
-								disabled={!activeClient || activeClient.pets.length === 0}
-							>
-								<SelectTrigger className="w-full">
-									<SelectValue
-										placeholder={
-											!activeClient
-												? "Selecione o tutor primeiro"
-												: activeClient.pets.length === 0
-													? "Tutor sem pets"
-													: "Selecionar"
-										}
-									/>
-								</SelectTrigger>
-								<SelectContent>
-									{activeClient?.pets.map((pet) => (
-										<SelectItem key={pet.pet_id} value={pet.pet_id}>
-											{pet.name}{" "}
-											{pet.species_name ? `(${pet.species_name})` : ""}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						) : (
-							<Select value={petId} onValueChange={setPetId}>
-								<SelectTrigger className="w-full">
-									<SelectValue placeholder="Selecionar" />
-								</SelectTrigger>
-								<SelectContent>
-									{clientOptions.pets.map((pet) => (
-										<SelectItem key={pet.pet_id} value={pet.pet_id}>
-											{pet.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						)}
-					</div>
-
-					<div className="flex flex-col gap-2.5">
-						<Label>Especialidade</Label>
-						<Select
-							value={specialtyId}
-							onValueChange={(value) => {
-								setSpecialtyId(value);
-								setDoctorId("");
-							}}
+								<span className="truncate">
+									{activeClient ? activeClient.name : "Selecionar"}
+								</span>
+								<ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent
+							container={sheetContentRef.current}
+							className="w-[var(--radix-popover-trigger-width)] p-0 rounded-[10px]"
+							align="start"
 						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Selecionar" />
-							</SelectTrigger>
-							<SelectContent>
-								{specialties.map((specialty) => (
-									<SelectItem
-										key={specialty.specialty_id}
-										value={specialty.specialty_id}
-									>
-										{translateSpecialtyName(specialty.name)}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
+							<div className="flex items-center border-b px-3">
+								<SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+								<input
+									className="flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+									placeholder="Pesquisar"
+									value={clientSearch}
+									onChange={(e) => setClientSearch(e.target.value)}
+								/>
+							</div>
+							<div className="overflow-y-auto max-h-50">
+								{filteredClients.length === 0 ? (
+									<div className="py-6 text-center text-sm text-muted-foreground">
+										Nenhum tutor encontrado.
+									</div>
+								) : (
+									<div className="p-1">
+										{filteredClients.map((client) => (
+											<button
+												key={client.cpf}
+												className={cn(
+													"relative w-full flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+													clientCpf === client.cpf
+														? "bg-muted font-medium"
+														: "",
+												)}
+												onClick={() => {
+													setClientCpf(client.cpf);
+													setPetId("");
+													setClientPopoverOpen(false);
+													setClientSearch("");
+												}}
+											>
+												<span className="truncate">{client.name}</span>
+												<CheckIcon
+													className={cn(
+														"ml-auto h-4 w-4",
+														clientCpf === client.cpf
+															? "opacity-100"
+															: "opacity-0",
+													)}
+												/>
+											</button>
+										))}
+									</div>
+								)}
+							</div>
+						</PopoverContent>
+					</Popover>
+				</div>
+			) : null}
 
-					<div className="flex flex-col gap-2.5">
-						<Label>Doutor(a)</Label>
-						<Select value={doctorId} onValueChange={setDoctorId}>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Selecionar" />
-							</SelectTrigger>
-							<SelectContent>
-								{doctorOptions.map((doctor) => (
-									<SelectItem key={doctor.doctor_id} value={doctor.doctor_id}>
-										{doctor.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</div>
-
-					<div className="border border-input rounded-[10px] overflow-hidden">
-						<Calendar
-							mode="single"
-							className="w-full"
-							selected={selectedDate ?? undefined}
-							captionLayout="dropdown"
-							disabled={calendarDisabled}
-							onSelect={(date) => {
-								if (!date) {
-									setSelectedDate(null);
-									return;
-								}
-								const normalized = new Date(
-									date.getFullYear(),
-									date.getMonth(),
-									date.getDate(),
-								);
-								setSelectedDate(normalized);
-							}}
-						/>
-					</div>
-
-					{!isAdmin && availabilityLoading ? (
-						<p className="text-xs text-muted-foreground">
-							A carregar disponibilidade do profissional…
-						</p>
-					) : null}
-					{!isAdmin && availabilityError ? (
-						<p className="text-xs text-destructive">{availabilityError}</p>
-					) : null}
-
-					<ScrollArea
-						className="w-[351px] pb-4 whitespace-nowrap"
-						orientation="horizontal"
+			<div className="flex flex-col gap-2.5">
+				<Label>Pet</Label>
+				{isAdmin ? (
+					<Select
+						value={petId}
+						onValueChange={setPetId}
+						disabled={!activeClient || activeClient.pets.length === 0}
 					>
-						<div className="flex items-center gap-2">
-							{SLOT_TIMES.map((time) => {
-								const ts = slotTimestampMs(selectedDate, time);
-								const inPast =
-									ts !== null && ts < Date.now();
-								const key = selectedDate
-									? localDayKey(selectedDate)
-									: "";
-								const hour = Number.parseInt(time.slice(0, 2), 10);
-								const booked =
-									!isAdmin &&
-									selectedDate !== null &&
-									!Number.isNaN(hour) &&
-									(bookedByDay.get(key)?.has(hour) ?? false);
-								const slotDisabled = inPast || booked;
+						<SelectTrigger className="w-full">
+							<SelectValue
+								placeholder={
+									!activeClient
+										? "Selecione o tutor primeiro"
+										: activeClient.pets.length === 0
+											? "Tutor sem pets"
+											: "Selecionar"
+								}
+							/>
+						</SelectTrigger>
+						<SelectContent>
+							{activeClient?.pets.map((pet) => (
+								<SelectItem key={pet.pet_id} value={pet.pet_id}>
+									{pet.name} {pet.species_name ? `(${pet.species_name})` : ""}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				) : (
+					<Select value={petId} onValueChange={setPetId}>
+						<SelectTrigger className="w-full">
+							<SelectValue placeholder="Selecionar" />
+						</SelectTrigger>
+						<SelectContent>
+							{clientOptions.pets.map((pet) => (
+								<SelectItem key={pet.pet_id} value={pet.pet_id}>
+									{pet.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				)}
+			</div>
 
-								return (
-									<button
-										key={time}
-										type="button"
-										disabled={slotDisabled}
-										onClick={() => {
-											if (!slotDisabled) setSelectedTime(time);
-										}}
-										className={cn(
-											"flex items-center border rounded-full px-2 py-1 transition-opacity",
-											selectedTime === time
-												? "border-primary bg-primary text-primary-foreground"
-												: "border-input",
-											slotDisabled &&
-												"opacity-40 pointer-events-none cursor-not-allowed",
-										)}
-									>
-										<span className="text-sm font-medium">{time}</span>
-									</button>
-								);
-							})}
-						</div>
-					</ScrollArea>
+			<div className="flex flex-col gap-2.5">
+				<Label>Especialidade</Label>
+				<Select
+					value={specialtyId}
+					onValueChange={(value) => {
+						setSpecialtyId(value);
+						setDoctorId("");
+					}}
+				>
+					<SelectTrigger className="w-full">
+						<SelectValue placeholder="Selecionar" />
+					</SelectTrigger>
+					<SelectContent>
+						{specialties.map((specialty) => (
+							<SelectItem
+								key={specialty.specialty_id}
+								value={specialty.specialty_id}
+							>
+								{translateSpecialtyName(specialty.name)}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+			</div>
 
-					{error ? <p className="text-sm text-destructive">{error}</p> : null}
+			<div className="flex flex-col gap-2.5">
+				<Label>Doutor(a)</Label>
+				<Select value={doctorId} onValueChange={setDoctorId}>
+					<SelectTrigger className="w-full">
+						<SelectValue placeholder="Selecionar" />
+					</SelectTrigger>
+					<SelectContent>
+						{doctorOptions.map((doctor) => (
+							<SelectItem key={doctor.doctor_id} value={doctor.doctor_id}>
+								{doctor.name}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+			</div>
+
+			<div className="border border-input rounded-[10px] overflow-hidden">
+				<Calendar
+					mode="single"
+					className="w-full"
+					selected={selectedDate ?? undefined}
+					captionLayout="dropdown"
+					disabled={calendarDisabled}
+					onSelect={(date) => {
+						if (!date) {
+							setSelectedDate(null);
+							return;
+						}
+						const normalized = new Date(
+							date.getFullYear(),
+							date.getMonth(),
+							date.getDate(),
+						);
+						setSelectedDate(normalized);
+					}}
+				/>
+			</div>
+
+			{!isAdmin && availabilityLoading ? (
+				<p className="text-xs text-muted-foreground">
+					A carregar disponibilidade do profissional…
+				</p>
+			) : null}
+			{!isAdmin && availabilityError ? (
+				<p className="text-xs text-destructive">{availabilityError}</p>
+			) : null}
+
+			<ScrollArea
+				className="w-[351px] pb-4 whitespace-nowrap"
+				orientation="horizontal"
+			>
+				<div className="flex items-center gap-2">
+					{SLOT_TIMES.map((time) => {
+						const ts = slotTimestampMs(selectedDate, time);
+						const inPast = ts !== null && ts < Date.now();
+						const key = selectedDate ? localDayKey(selectedDate) : "";
+						const hour = Number.parseInt(time.slice(0, 2), 10);
+						const booked =
+							!isAdmin &&
+							selectedDate !== null &&
+							!Number.isNaN(hour) &&
+							(bookedByDay.get(key)?.has(hour) ?? false);
+						const slotDisabled = inPast || booked;
+
+						return (
+							<button
+								key={time}
+								type="button"
+								disabled={slotDisabled}
+								onClick={() => {
+									if (!slotDisabled) setSelectedTime(time);
+								}}
+								className={cn(
+									"flex items-center border rounded-full px-2 py-1 transition-opacity",
+									selectedTime === time
+										? "border-primary bg-primary text-primary-foreground"
+										: "border-input",
+									slotDisabled &&
+										"opacity-40 pointer-events-none cursor-not-allowed",
+								)}
+							>
+								<span className="text-sm font-medium">{time}</span>
+							</button>
+						);
+					})}
+				</div>
+			</ScrollArea>
+
+			{error ? <p className="text-sm text-destructive">{error}</p> : null}
 		</div>
 	);
 
@@ -657,7 +652,10 @@ export function AppointmentSheet(props: AppointmentSheetProps) {
 					Novo
 				</Button>
 			</SheetTrigger>
-			<SheetContent className={cn(isAdmin && "overflow-y-auto")}>
+			<SheetContent
+				ref={sheetContentRef}
+				className={cn(isAdmin && "overflow-y-auto")}
+			>
 				<SheetHeader>
 					<SheetTitle>Agendar consulta</SheetTitle>
 					<SheetDescription>Preencha os campos abaixo.</SheetDescription>

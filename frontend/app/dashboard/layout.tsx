@@ -11,7 +11,7 @@ export default async function DashboardLayout({
 	return (
 		<main className="flex flex-col md:flex-row min-h-dvh w-full">
 			<Sidebar user={user} />
-			<article className="flex-1 px-4 py-6 md:px-15 md:pt-16 md:pb-0 w-full overflow-x-hidden">
+			<article className="flex-1 px-4 pt-6 pb-12 md:px-15 md:pt-16 w-full overflow-x-hidden">
 				{children}
 			</article>
 		</main>

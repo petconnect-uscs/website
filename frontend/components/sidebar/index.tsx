@@ -37,7 +37,13 @@ type SidebarItem = {
 	path: string;
 };
 
-export function SidebarContent({ user, onClickItem }: { user: AuthUser; onClickItem?: () => void }) {
+export function SidebarContent({
+	user,
+	onClickItem,
+}: {
+	user: AuthUser;
+	onClickItem?: () => void;
+}) {
 	const pathname = usePathname();
 
 	const items: SidebarItem[] = [
@@ -61,12 +67,12 @@ export function SidebarContent({ user, onClickItem }: { user: AuthUser; onClickI
 	];
 
 	return (
-		<div className="flex flex-col flex-1 min-h-[calc(100dvh-1rem)] md:min-h-0 md:h-full justify-between bg-white">
+		<div className="flex flex-col flex-1 min-h-screen md:min-h-0 md:h-full justify-between bg-white">
 			<header className="p-4">
 				<Image src={logo} alt="Logo" width={42} />
 			</header>
 
-			<nav className="px-4 flex-grow mt-30">
+			<nav className="px-3 flex-grow mt-30">
 				<ul className="flex flex-col gap-3">
 					{items.map((item) => {
 						const isActive =
@@ -156,7 +162,10 @@ export function Sidebar({ user }: { user: AuthUser }) {
 							<MenuIcon className="size-6 text-foreground" />
 						</Button>
 					</SheetTrigger>
-					<SheetContent side="left" className="p-0 w-68 border-none flex flex-col bg-white">
+					<SheetContent
+						side="left"
+						className="p-0 w-68 border-none flex flex-col bg-white"
+					>
 						<SheetHeader className="sr-only">
 							<SheetTitle>Menu de Navegação</SheetTitle>
 						</SheetHeader>

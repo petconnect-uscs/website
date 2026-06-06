@@ -1,11 +1,17 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Trash2Icon } from "lucide-react";
+import { MoreHorizontalIcon, Trash2Icon } from "lucide-react";
 
 import type { AdminClientWithPets } from "@/app/actions/admin-clients";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function formatCpfDisplay(cpf: string): string {
 	const d = cpf.replace(/\D/g, "");
@@ -28,37 +34,6 @@ export function buildColumns({
 	onDelete,
 }: ColumnsOptions): ColumnDef<AdminClientWithPets>[] {
 	return [
-		{
-			id: "select",
-			header: ({ table }) => (
-				<div className="-mb-1 pl-2">
-					<Checkbox
-						checked={
-							table.getIsAllPageRowsSelected() ||
-							(table.getIsSomePageRowsSelected() && "indeterminate")
-						}
-						onCheckedChange={(value) =>
-							table.toggleAllPageRowsSelected(!!value)
-						}
-					/>
-				</div>
-			),
-			cell: ({ row }) => (
-				<div
-					onClick={(e) => e.stopPropagation()}
-					onKeyDown={(e) => e.stopPropagation()}
-					role="presentation"
-					className="-mb-1 pl-2"
-				>
-					<Checkbox
-						checked={row.getIsSelected()}
-						onCheckedChange={(value) => row.toggleSelected(!!value)}
-					/>
-				</div>
-			),
-			enableSorting: false,
-			enableHiding: false,
-		},
 		{
 			accessorKey: "name",
 			header: "Nome",
@@ -112,16 +87,28 @@ export function buildColumns({
 					onKeyDown={(e) => e.stopPropagation()}
 					role="presentation"
 				>
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon"
-						className="text-muted-foreground hover:text-red-600"
-						aria-label={`Excluir ${row.original.name}`}
-						onClick={() => onDelete(row.original.cpf)}
-					>
-						<Trash2Icon className="size-4" />
-					</Button>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon"
+								className="group data-[state=open]:bg-accent focus-visible:ring-0 focus-visible:border-transparent"
+								aria-label={`Ações para ${row.original.name}`}
+							>
+								<MoreHorizontalIcon className="size-4 opacity-50 group-hover:opacity-100 group-data-[state=open]:bg-accent" />
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="w-40">
+							<DropdownMenuItem
+								className="!text-destructive focus:bg-destructive/10"
+								onClick={() => onDelete(row.original.cpf)}
+							>
+								<Trash2Icon className="text-inherit" />
+								Excluir
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				</div>
 			),
 			enableSorting: false,

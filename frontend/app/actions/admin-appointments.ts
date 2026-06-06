@@ -158,3 +158,22 @@ export async function createAdminAppointmentAction(input: CreateAdminAppointment
 	return { success: true as const };
 }
 
+export async function cancelAdminAppointmentAction(
+	appointmentId: string,
+): Promise<void> {
+	const { token } = await verifySession();
+
+	const res = await backend(`/admin/appointments/${appointmentId}/cancel`, {
+		method: "PATCH",
+		token,
+	});
+
+	if (!res.ok) {
+		throw new Error(
+			await readErrorMessage(res, "Não foi possível excluir o agendamento."),
+		);
+	}
+
+	revalidatePath("/dashboard/agendamentos");
+}
+

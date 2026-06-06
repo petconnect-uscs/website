@@ -74,8 +74,8 @@ function SheetContent({
 				)}
 				{...props}
 			>
-				<ScrollArea className="flex flex-col h-full">
-					<div className="pb-4">{children}</div>
+				<ScrollArea className="h-full [&>[data-radix-scroll-area-viewport]>div]:!flex [&>[data-radix-scroll-area-viewport]>div]:!min-h-full [&>[data-radix-scroll-area-viewport]>div]:!flex-col">
+					{children}
 				</ScrollArea>
 				{showCloseButton && (
 					<SheetPrimitive.Close

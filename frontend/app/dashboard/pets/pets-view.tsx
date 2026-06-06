@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 
 import Image from "next/image";
-import { PlusIcon } from "lucide-react";
+import { MoreHorizontalIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -24,6 +24,12 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { VaccinesSheet } from "@/components/ui/vaccines-sheet";
 import labradorFallback from "@/assets/dogs/labrador.png";
 import { getBreedImage, translateBreedName } from "@/lib/breed-translations";
@@ -78,7 +84,7 @@ function PetCoverImage({
 			<img
 				src={trimmed}
 				alt={name}
-				className="h-[170px] w-full rounded-t-lg rounded-b-none object-cover"
+				className="h-[170px] w-full object-cover"
 				loading="lazy"
 				decoding="async"
 			/>
@@ -92,7 +98,7 @@ function PetCoverImage({
 			src={breedImg ?? labradorFallback}
 			width={170}
 			height={170}
-			className="h-[170px] w-full rounded-t-lg rounded-b-none object-cover"
+			className="h-[170px] w-full object-cover"
 			alt={name}
 		/>
 	);
@@ -164,7 +170,7 @@ export function PetsView({
 							{pets.map((pet) => (
 								<div
 									key={pet.pet_id}
-									className="flex flex-col rounded-[10px] border bg-white"
+									className="flex flex-col rounded-[12px] border bg-white overflow-hidden"
 								>
 									<PetCoverImage
 										name={pet.name}
@@ -238,13 +244,32 @@ export function PetsView({
 												}
 											}}
 										/>
-										<Button
-											variant="outline"
-											onClick={() => handleDeletePet(pet)}
-											disabled={isDeletePending}
-										>
-											Excluir
-										</Button>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													type="button"
+													variant="outline"
+													size="icon"
+													className="p-2"
+													aria-label={`Ações para ${pet.name}`}
+												>
+													<MoreHorizontalIcon className="size-4" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent
+												align="start"
+												side="top"
+												className="w-40"
+											>
+												<DropdownMenuItem
+													className="!text-destructive focus:bg-destructive/10"
+													onClick={() => handleDeletePet(pet)}
+												>
+													<Trash2Icon className="text-inherit" />
+													Excluir
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
 									</div>
 								</div>
 							))}
