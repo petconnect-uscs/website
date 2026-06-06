@@ -1,11 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-import { type AdminAppointment } from "@/app/actions/admin-appointments";
+import {
+	type AdminAppointment,
+	cancelAdminAppointmentAction,
+} from "@/app/actions/admin-appointments";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Status } from "@/components/ui/status";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
 	InputGroup,
 	InputGroupAddon,
@@ -31,7 +50,14 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { ChevronDownIcon, Search, XIcon } from "lucide-react";
+import {
+	ChevronDownIcon,
+	MoreHorizontalIcon,
+	Search,
+	Trash2Icon,
+	XIcon,
+} from "lucide-react";
+import { translateSpecialtyName } from "@/lib/specialty-translations";
 
 type Props = {
 	appointments: AdminAppointment[];
@@ -63,11 +89,37 @@ function formatDateTimeBr(value: string): string {
 }
 
 export function AgendamentosTable({ appointments }: Props) {
+	const router = useRouter();
 	const [query, setQuery] = useState("");
 	const [doctorFilter, setDoctorFilter] = useState("all");
 	const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
 	const [datePickerOpen, setDatePickerOpen] = useState(false);
 	const [nowReference] = useState(() => Date.now());
+	const [idToDelete, setIdToDelete] = useState<string | null>(null);
+	const [isDeleting, startDeleteTransition] = useTransition();
+
+	const appointmentToDelete = useMemo(
+		() => appointments.find((a) => a.id === idToDelete) ?? null,
+		[appointments, idToDelete],
+	);
+
+	function confirmDelete() {
+		if (!idToDelete) return;
+		startDeleteTransition(async () => {
+			try {
+				await cancelAdminAppointmentAction(idToDelete);
+				toast.success("Agendamento excluído.");
+				setIdToDelete(null);
+				router.refresh();
+			} catch (err) {
+				toast.error(
+					err instanceof Error
+						? err.message
+						: "Falha ao excluir agendamento.",
+				);
+			}
+		});
+	}
 
 	const doctors = useMemo(() => {
 		return Array.from(
@@ -116,9 +168,9 @@ export function AgendamentosTable({ appointments }: Props) {
 	}, [appointments, dateFilter, doctorFilter, nowReference, query]);
 
 	return (
-		<div className="space-y-4">
-			<div className="flex items-center gap-1.5">
-				<InputGroup className="max-w-[360px]">
+		<div className="space-y-2">
+			<div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full">
+				<InputGroup className="w-full sm:w-auto sm:max-w-[360px] flex-1">
 					<InputGroupAddon>
 						<Search className="size-3.5" />
 					</InputGroupAddon>
@@ -130,7 +182,7 @@ export function AgendamentosTable({ appointments }: Props) {
 				</InputGroup>
 
 				<Select value={doctorFilter} onValueChange={setDoctorFilter}>
-					<SelectTrigger className="bg-white">
+					<SelectTrigger className="bg-white max-sm:w-full">
 						<SelectValue placeholder="Todos os doutores" />
 					</SelectTrigger>
 					<SelectContent>
@@ -147,7 +199,7 @@ export function AgendamentosTable({ appointments }: Props) {
 					<PopoverTrigger asChild>
 						<Button
 							variant="outline"
-							className="group w-[250px] justify-between bg-white font-normal text-sm text-accent-foreground h-8! pl-3! pr-2!"
+							className="group max-sm:w-full sm:w-[250px] justify-between bg-white font-normal text-sm text-accent-foreground h-8! pl-3! pr-2!"
 						>
 							{dateFilter
 								? dateFilter.toLocaleDateString("pt-BR")
@@ -165,7 +217,7 @@ export function AgendamentosTable({ appointments }: Props) {
 									<XIcon className="size-4.5 opacity-50" />
 								</span>
 							) : (
-								<ChevronDownIcon className="size-5 opacity-50 transition-all group-data-[state=open]:rotate-180" />
+								<ChevronDownIcon className="size-5 opacity-30 transition-all group-data-[state=open]:rotate-180 duration-200 group-hover:opacity-100" />
 							)}
 						</Button>
 					</PopoverTrigger>
@@ -193,6 +245,7 @@ export function AgendamentosTable({ appointments }: Props) {
 							<TableHead>Profissional</TableHead>
 							<TableHead>Data e horário</TableHead>
 							<TableHead>Status</TableHead>
+							<TableHead className="w-0" />
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -201,17 +254,45 @@ export function AgendamentosTable({ appointments }: Props) {
 								<TableRow key={row.id}>
 									<TableCell className="px-4">{row.petName}</TableCell>
 									<TableCell>{row.ownerName}</TableCell>
-									<TableCell>{row.specialtyName}</TableCell>
+									<TableCell>
+										{translateSpecialtyName(row.specialtyName)}
+									</TableCell>
 									<TableCell>{row.doctorName}</TableCell>
 									<TableCell>{formatDateTimeBr(row.dateTimeIso)}</TableCell>
 									<TableCell>
 										<Status status={row.status} />
 									</TableCell>
+									<TableCell className="text-right">
+										{row.status === "agendado" ? (
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														className="text-muted-foreground"
+														aria-label={`Ações para o agendamento de ${row.petName}`}
+													>
+														<MoreHorizontalIcon className="size-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end" className="w-40">
+													<DropdownMenuItem
+														className="!text-destructive focus:bg-destructive/10"
+														onClick={() => setIdToDelete(row.id)}
+													>
+														<Trash2Icon className="text-inherit" />
+														Excluir
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										) : null}
+									</TableCell>
 								</TableRow>
 							))
 						) : (
 							<TableRow>
-								<TableCell colSpan={6} className="h-24 text-center">
+								<TableCell colSpan={7} className="h-24 text-center">
 									Nenhum agendamento encontrado.
 								</TableCell>
 							</TableRow>
@@ -219,6 +300,50 @@ export function AgendamentosTable({ appointments }: Props) {
 					</TableBody>
 				</Table>
 			</div>
+
+			<Dialog
+				open={Boolean(idToDelete)}
+				onOpenChange={(open) => {
+					if (!open && !isDeleting) setIdToDelete(null);
+				}}
+			>
+				<DialogContent
+					showCloseButton={!isDeleting}
+					className="w-[92vw] rounded-xl sm:max-w-md"
+				>
+					<DialogHeader className="gap-2 pr-6">
+						<DialogTitle className="leading-snug">
+							Excluir agendamento?
+						</DialogTitle>
+						<DialogDescription>
+							Tem certeza que deseja excluir o agendamento de{" "}
+							<span className="text-foreground">
+								{appointmentToDelete?.petName}
+							</span>{" "}
+							com {appointmentToDelete?.doctorName}? <br />
+							Esta ação não pode ser desfeita.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							disabled={isDeleting}
+							onClick={() => setIdToDelete(null)}
+						>
+							Cancelar
+						</Button>
+						<Button
+							type="button"
+							variant="destructive"
+							disabled={isDeleting}
+							onClick={confirmDelete}
+						>
+							{isDeleting ? "Excluindo..." : "Excluir"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

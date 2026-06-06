@@ -10,8 +10,8 @@ type AuthLayoutProps = {
 
 export function AuthLayout({ title, description, children }: AuthLayoutProps) {
 	return (
-		<main className="flex flex-col my-20">
-			<div className="flex flex-col justify-center gap-10 mt-20 max-w-lg mx-auto w-full">
+		<main className="flex flex-col my-10 md:my-20 px-4 sm:px-6">
+			<div className="flex flex-col justify-center gap-8 md:gap-10 mt-10 md:mt-20 max-w-lg mx-auto w-full">
 				<div className="flex flex-col gap-2">
 					<Image
 						src={logo}

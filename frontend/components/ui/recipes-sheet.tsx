@@ -12,7 +12,15 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+	Drawer,
+	DrawerContent,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 type RecipesSheetProps = {
 	items: Recipe[];
@@ -24,7 +32,84 @@ function formatDate(raw: string) {
 	return format(date, "dd/MM/yyyy");
 }
 
+function RecipesList({ items }: RecipesSheetProps) {
+	return (
+		<ScrollArea className="flex-1 px-4">
+			{items.length === 0 ? (
+				<p className="text-sm text-muted-foreground text-center py-8">
+					Nenhuma receita encontrada.
+				</p>
+			) : (
+				<ul className="space-y-3">
+					{items.map((item) => (
+						<li
+							key={item.id}
+							className="flex items-center justify-between gap-4 rounded-lg border p-3"
+						>
+							<div className="flex items-start gap-2">
+								<span className="mt-1 size-2 rounded-full bg-primary shrink-0" />
+								<div className="space-y-0.5 text-sm">
+									<p className="font-medium">{formatDate(item.date)}</p>
+									<p className="text-muted-foreground">
+										Paciente:{" "}
+										<span className="text-foreground">{item.pet_name}</span>
+									</p>
+									<p className="text-muted-foreground">
+										Doutor(a):{" "}
+										<span className="text-foreground">
+											{item.doctor_name}
+										</span>
+									</p>
+								</div>
+							</div>
+
+							{item.pdf_url ? (
+								<Button variant="outline" size="sm" asChild>
+									<a
+										href={`/api/recipes/${item.id}/pdf`}
+										download={`receita-${item.id}.pdf`}
+									>
+										<DownloadIcon className="size-3.5" />
+										Download
+									</a>
+								</Button>
+							) : (
+								<span className="shrink-0 text-xs text-muted-foreground">
+									PDF não disponível
+								</span>
+							)}
+						</li>
+					))}
+				</ul>
+			)}
+		</ScrollArea>
+	);
+}
+
 export function RecipesSheet({ items }: RecipesSheetProps) {
+	const isMobile = useIsMobile();
+
+	if (isMobile) {
+		return (
+			<Drawer>
+				<DrawerTrigger asChild>
+					<Button variant="outline" className="gap-2">
+						<FileTextIcon className="size-4 text-muted-foreground" />
+						Receitas
+					</Button>
+				</DrawerTrigger>
+				<DrawerContent>
+					<DrawerHeader className="text-left">
+						<DrawerTitle>Receitas</DrawerTitle>
+					</DrawerHeader>
+					<div className="pb-4 h-[60vh] flex flex-col">
+						<RecipesList items={items} />
+					</div>
+				</DrawerContent>
+			</Drawer>
+		);
+	}
+
 	return (
 		<Sheet>
 			<SheetTrigger asChild>
@@ -37,56 +122,7 @@ export function RecipesSheet({ items }: RecipesSheetProps) {
 				<SheetHeader>
 					<SheetTitle>Receitas</SheetTitle>
 				</SheetHeader>
-
-				<ScrollArea className="flex-1 px-4">
-					{items.length === 0 ? (
-						<p className="text-sm text-muted-foreground text-center py-8">
-							Nenhuma receita encontrada.
-						</p>
-					) : (
-						<ul className="space-y-3">
-							{items.map((item) => (
-								<li
-									key={item.id}
-									className="flex items-center justify-between gap-4 rounded-lg border p-3"
-								>
-									<div className="flex items-start gap-2">
-										<span className="mt-1 size-2 rounded-full bg-primary shrink-0" />
-										<div className="space-y-0.5 text-sm">
-											<p className="font-medium">{formatDate(item.date)}</p>
-											<p className="text-muted-foreground">
-												Paciente:{" "}
-												<span className="text-foreground">{item.pet_name}</span>
-											</p>
-											<p className="text-muted-foreground">
-												Doutor(a):{" "}
-												<span className="text-foreground">
-													{item.doctor_name}
-												</span>
-											</p>
-										</div>
-									</div>
-
-									{item.pdf_url ? (
-										<Button variant="outline" size="sm" asChild>
-											<a
-												href={`/api/recipes/${item.id}/pdf`}
-												download={`receita-${item.id}.pdf`}
-											>
-												<DownloadIcon className="size-3.5" />
-												Download
-											</a>
-										</Button>
-									) : (
-										<span className="shrink-0 text-xs text-muted-foreground">
-											PDF não disponível
-										</span>
-									)}
-								</li>
-							))}
-						</ul>
-					)}
-				</ScrollArea>
+				<RecipesList items={items} />
 			</SheetContent>
 		</Sheet>
 	);

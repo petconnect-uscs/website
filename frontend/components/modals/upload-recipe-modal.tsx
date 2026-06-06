@@ -135,7 +135,7 @@ export function UploadRecipeModal({
 					Upload de Receita
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="max-w-md">
+			<DialogContent className="max-w-md w-[92vw] rounded-xl sm:w-full">
 				<DialogHeader>
 					<DialogTitle className="text-xl">Upload de Receita</DialogTitle>
 				</DialogHeader>
