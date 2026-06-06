@@ -134,6 +134,119 @@ export async function signupAction(
 	redirect("/dashboard");
 }
 
+type ResetRequestState = { error?: string; success?: boolean } | undefined;
+
+export async function forgotPasswordAction(
+	_prev: ResetRequestState,
+	formData: FormData,
+): Promise<ResetRequestState> {
+	const email = String(formData.get("email") ?? "").trim();
+
+	if (!email) {
+		return { error: "Informe seu e-mail." };
+	}
+
+	let res: Response;
+
+	try {
+		res = await backend("/auth/forgot-password", {
+			method: "POST",
+			body: JSON.stringify({ email }),
+		});
+	} catch {
+		return { error: "Não foi possível conectar ao servidor." };
+	}
+
+	if (!res.ok) {
+		if (res.status === 429) {
+			return {
+				error:
+					"Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.",
+			};
+		}
+
+		const message = await readErrorMessage(res, "");
+
+		if (message && [400, 401, 403, 422].includes(res.status)) {
+			return { error: message };
+		}
+
+		return {
+			error:
+				"Não foi possível enviar o e-mail de recuperação. Tente novamente.",
+		};
+	}
+
+	return { success: true };
+}
+
+type ResetPasswordState = { error?: string; success?: boolean } | undefined;
+
+const MIN_PASSWORD_LENGTH = 8;
+
+export async function resetPasswordAction(
+	_prev: ResetPasswordState,
+	formData: FormData,
+): Promise<ResetPasswordState> {
+	const token = String(formData.get("token") ?? "").trim();
+	const password = String(formData.get("password") ?? "");
+	const passwordConfirm = String(formData.get("password_confirm") ?? "");
+
+	if (!token) {
+		return {
+			error: "Link de recuperação inválido ou ausente. Solicite um novo.",
+		};
+	}
+	if (!password || !passwordConfirm) {
+		return { error: "Preencha a nova senha e a confirmação." };
+	}
+	if (password !== passwordConfirm) {
+		return { error: "As senhas não coincidem." };
+	}
+	if (password.length < MIN_PASSWORD_LENGTH) {
+		return {
+			error: `A nova senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`,
+		};
+	}
+
+	let res: Response;
+
+	try {
+		res = await backend("/auth/reset-password", {
+			method: "POST",
+			body: JSON.stringify({
+				token,
+				password,
+				password_confirm: passwordConfirm,
+			}),
+		});
+	} catch {
+		return { error: "Não foi possível conectar ao servidor." };
+	}
+
+	if (!res.ok) {
+		if (res.status === 429) {
+			return {
+				error:
+					"Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.",
+			};
+		}
+
+		const message = await readErrorMessage(res, "");
+
+		if (message && [400, 422].includes(res.status)) {
+			return { error: message };
+		}
+
+		return {
+			error:
+				"Não foi possível redefinir a senha. O link pode ter expirado. Solicite um novo.",
+		};
+	}
+
+	return { success: true };
+}
+
 export async function logoutAction() {
 	await deleteSession();
 
