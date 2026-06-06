@@ -1,6 +1,5 @@
 import express, { type NextFunction, type Request, type Response } from "express";
 import cors, { type CorsOptions } from "cors";
-import rateLimit from "express-rate-limit";
 
 /* CORS */
 const corsOptions: CorsOptions = {
@@ -8,17 +7,6 @@ const corsOptions: CorsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "X-API-Key"],
 };
-
-/* Rate Limit Global */
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    error: "Muitas requisições. Tente novamente mais tarde.",
-  },
-});
 
 /* Middleware API Key */
 function apiKeyMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -56,7 +44,6 @@ function createProxy(app: express.Express) {
 
   proxy.use(cors(corsOptions));
   proxy.use(express.json());
-  proxy.use(globalLimiter);
   proxy.use(apiKeyMiddleware);
   proxy.use(app);
   proxy.use(errorHandler);
